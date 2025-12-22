@@ -1,5 +1,9 @@
 mod types;
 use types::piece::Pieces;
 fn main() {
-    println!("Hello, world!");
+    let p = Pieces::Bishop;
+    let piece_num: u8 = u8::try_from(p).unwrap();
+    let p = Pieces::Bishop;
+    println!("{}", piece_num);
+    println!("{}", p as u8);
 }
