@@ -1,5 +1,5 @@
-mod types;
-use types::piece::Pieces;
+mod board;
+use board::piece::Pieces;
 fn main() {
     let p = Pieces::Bishop;
     let piece_num: u8 = u8::try_from(p).unwrap();

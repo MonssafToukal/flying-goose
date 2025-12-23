@@ -1,0 +1,2 @@
+type BitBoard = u64;
+

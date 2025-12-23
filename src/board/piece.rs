@@ -1,4 +1,4 @@
-use int_enum::IntEnum;
+pub(crate) use int_enum::IntEnum;
 
 #[repr(u8)]
 #[derive(Debug, PartialEq, IntEnum)]
