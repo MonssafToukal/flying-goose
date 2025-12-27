@@ -1,9 +1,5 @@
 mod board;
-use board::piece::Pieces;
+use board::bitboard::print_bb;
 fn main() {
-    let p = Pieces::Bishop;
-    let piece_num: u8 = u8::try_from(p).unwrap();
-    let p = Pieces::Bishop;
-    println!("{}", piece_num);
-    println!("{}", p as u8);
+    print_bb(0);
 }
