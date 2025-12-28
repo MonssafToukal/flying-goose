@@ -1,8 +1,10 @@
 pub(crate) use int_enum::IntEnum;
 
-#[repr(u8)]
-#[derive(Debug, PartialEq, IntEnum)]
-pub enum Pieces {
+pub const NUM_PIECE_TYPES: u64 = 6;
+
+#[repr(u64)]
+#[derive(Copy, Clone, Debug, PartialEq, IntEnum)]
+pub enum Piece {
     King = 0,
     Queen = 1,
     Rook = 2,
