@@ -18,6 +18,9 @@ pub fn print_bb(bitboard: BitBoard) -> () {
 pub type Piece = usize;
 pub type Square = usize;
 pub type Side = usize;
+pub type CastlingState = u8;
+pub type EnpassantState = u8;
+
 
 pub struct Sides;
 impl Sides {
@@ -32,4 +35,12 @@ impl NumOf {
     pub const PIECE_TYPES: usize = 6;
     pub const CASTLING_STATES: usize = 16;
     pub const ENPASSANT_FILES: usize = 8;
+}
+
+#[repr(u8)]
+pub enum CastlingRight {
+    WhiteKingSide = 1,
+    WhiteQueenSide = 2,
+    BlackKingSide = 4,
+    BlackQueenSide = 8,
 }

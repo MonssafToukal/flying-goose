@@ -1,6 +1,6 @@
 use super::{
     piece::Pieces,
-    types::{NumOf, Piece, Side, Sides, Square},
+    types::{CastlingState, EnpassantState, NumOf, Piece, Side, Sides, Square},
 };
 use rand::{Rng, SeedableRng};
 use rand_pcg::Pcg64;
@@ -12,9 +12,13 @@ type CastlingHashes = [u64; NumOf::CASTLING_STATES];
 type EnpassantHashes = [u64; NumOf::ENPASSANT_FILES];
 
 pub struct Zobrist {
+    // 12 * 64 hashes
     pieces_hash: PieceHashes,
+    // 1 hash for the black side
     side_hashes: u64,
+    // 16 hashes for all the castling combinations
     castling_hashes: CastlingHashes,
+    // 8 hashes; 1 for each file of the board
     enpassant_hashes: EnpassantHashes,
 }
 
@@ -53,12 +57,31 @@ impl Zobrist {
             enpassant_hashes: enpassant_hashes,
         }
     }
-    pub fn piece(&self, colour: Side, piece_type: Piece, square: Square) -> ZobristKey {
-        debug_assert!(colour < Sides::BOTH, "Invalid side: {:?}", colour);
+    pub fn piece(&self, side: Side, piece_type: Piece, square: Square) -> ZobristKey {
+        debug_assert!(side < Sides::BOTH, "Invalid side: {:?}", side);
         debug_assert!(piece_type < Pieces::NONE, "Invalid piece: {:?}", piece_type);
         debug_assert!(square < NumOf::SQUARES, "Invalid square: {:?}", square);
-        let piece_index = piece_type + (colour * 6);
+        let piece_index = piece_type + (side * 6);
 
         return self.pieces_hash[piece_index][square];
+    }
+    pub fn castling(&self, castling_state: CastlingState) -> ZobristKey {
+        debug_assert!(
+            castling_state < NumOf::CASTLING_STATES as u8,
+            "Invalid castling state index: {}",
+            castling_state
+        );
+        self.castling_hashes[castling_state as usize]
+    }
+    pub fn enpassant(&self, file_index: EnpassantState) -> ZobristKey {
+        debug_assert!(
+            file_index < NumOf::ENPASSANT_FILES as u8,
+            "Invalid en passant file index provided: {}",
+            file_index
+        );
+        self.enpassant_hashes[file_index as usize]
+    }
+    pub fn side(&self) -> ZobristKey {
+        self.side_hashes
     }
 }
