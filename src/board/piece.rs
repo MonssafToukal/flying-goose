@@ -1,15 +1,12 @@
-pub(crate) use int_enum::IntEnum;
+use super::types::Piece;
 
-pub const NUM_PIECE_TYPES: u64 = 6;
-
-#[repr(u64)]
-#[derive(Copy, Clone, Debug, PartialEq, IntEnum)]
-pub enum Piece {
-    King = 0,
-    Queen = 1,
-    Rook = 2,
-    Bishop = 3,
-    Knight = 4,
-    Pawn = 5,
-    None = 6,
+pub struct Pieces;
+impl Pieces {
+    pub const KING: Piece = 0;
+    pub const QUEEN: Piece = 1;
+    pub const ROOK: Piece = 2;
+    pub const BISHOP: Piece = 3;
+    pub const KNIGHT: Piece = 4;
+    pub const PAWN: Piece = 5;
+    pub const NONE: Piece = 6;
 }

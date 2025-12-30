@@ -1,58 +1,35 @@
-use std::iter::zip;
-
-use super::{
-    bitboard::{self, NUM_SQUARES},
-    piece::{NUM_PIECE_TYPES, Piece},
-};
-use bitboard::BitBoard;
-
-pub struct Board {
-    bb_pieces: [[BitBoard; NUM_PIECE_TYPES as usize]; Side::Both as usize],
-    bb_sides: [BitBoard; Side::Both as usize],
-}
-
-impl Board {
-    pub fn get_pieces(&self, side: Side, piece: Piece) -> BitBoard {
-        return self.bb_pieces[side as usize][piece as usize];
-    }
-    pub fn get_piece_list(&self) -> [Piece; NUM_SQUARES as usize] {
-        let mut piece_list = [Piece::None; NUM_SQUARES as usize];
-        let white_bbs = self.bb_pieces[Side::White as usize];
-        let black_bbs = self.bb_pieces[Side::Black as usize];
-        for piece_type in 0..NUM_PIECE_TYPES {
-            let piece_type = Piece::try_from(piece_type).unwrap();
-            let white_bitboard = white_bbs[piece_type as usize];
-            let black_bitboard = black_bbs[piece_type as usize];
-            let mut bit_mask: u64 = 1;
-
-            for square_idx in 0..NUM_SQUARES {
-                let square_idx = square_idx as usize;
-                if (bit_mask & white_bitboard) > 0 {
-                    piece_list[square_idx] = piece_type;
-                }
-                bit_mask = bit_mask << 1;
+pub type BitBoard = u64;
+pub fn print_bb(bitboard: BitBoard) -> () {
+    const LAST_SQUARE_BIT: u64 = 63;
+    // rank 0 is the h-rank
+    for rank in 0..8 {
+        for file in (0..8).rev() {
+            let mask: u64 = 1u64 << (LAST_SQUARE_BIT - (rank * 8) - file);
+            if mask & bitboard != 0 {
+                print!("1");
+            } else {
+                print!("0");
             }
-            bit_mask = 1u64;
-            for square_idx in 0..NUM_SQUARES {
-                let square_idx = square_idx as usize;
-                if (bit_mask & black_bitboard) > 0 {
-                    piece_list[square_idx] = piece_type;
-                }
-                bit_mask = bit_mask << 1;
-            }
-
         }
-        piece_list
+        println!();
     }
 }
 
-#[repr(usize)]
-pub enum Side {
-    White,
-    Black,
-    Both,
+pub type Piece = usize;
+pub type Square = usize;
+pub type Side = usize;
+
+pub struct Sides;
+impl Sides {
+    pub const WHITE: Side = 0;
+    pub const BLACK: Side = 1;
+    pub const BOTH: Side = 2;
 }
 
-// enum GameState {
-
-// }
+pub struct NumOf;
+impl NumOf {
+    pub const SQUARES: usize = 64;
+    pub const PIECE_TYPES: usize = 6;
+    pub const CASTLING_STATES: usize = 16;
+    pub const ENPASSANT_FILES: usize = 8;
+}
