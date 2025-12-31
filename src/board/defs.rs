@@ -1,14 +1,12 @@
-use super::{
-    piece::Pieces;
-use super::state::{GameState,  types::{BitBoard, NumOf, Piece, Side, Sides}, zobrist::{Zobrist, ZobristKey}
-};
+use super::{history::GameHistory, piece::Pieces, state::GameState, types::{BitBoard, NumOf, Piece, Side, Sides}, zobrist::{Zobrist, ZobristKey}};
+
 
 pub struct Board {
     bb_pieces: [[BitBoard; NumOf::PIECE_TYPES]; Sides::BOTH],
     bb_sides: [BitBoard; Sides::BOTH],
-    // move_history: History,
     piece_list: [Piece; NumOf::SQUARES],
     game_state: GameState,
+    history: GameHistory,
     zobrist_hashmap: Zobrist,
 }
 

@@ -1,5 +1,6 @@
 use super::{types::{CastlingRight, CastlingState, EnpassantState, NumOf, Sides}, zobrist::ZobristKey};
     
+#[derive(Clone, Copy, Debug)]
 pub struct GameState {
     pub castling: CastlingState,
     pub enpassant: Option<EnpassantState>,
