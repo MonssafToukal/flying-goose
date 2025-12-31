@@ -1,5 +1,6 @@
 use super::{
-    piece::Pieces, state::{GameState, NO_ENPASSANT}, types::{BitBoard, NumOf, Piece, Side, Sides}, zobrist::{Zobrist, ZobristKey}
+    piece::Pieces;
+use super::state::{GameState,  types::{BitBoard, NumOf, Piece, Side, Sides}, zobrist::{Zobrist, ZobristKey}
 };
 
 pub struct Board {
@@ -8,7 +9,7 @@ pub struct Board {
     // move_history: History,
     piece_list: [Piece; NumOf::SQUARES],
     game_state: GameState,
-    zobrist_keys: Zobrist,
+    zobrist_hashmap: Zobrist,
 }
 
 impl Board {
@@ -26,28 +27,27 @@ impl Board {
             while white_bitboard != 0 {
                 let square_idx = white_bitboard.trailing_zeros() as usize;
                 key ^= self
-                    .zobrist_keys
+                    .zobrist_hashmap
                     .piece(Sides::WHITE, piece_type, square_idx);
                 white_bitboard &= white_bitboard - 1;
             }
             while black_bitboard != 0 {
                 let square_idx = black_bitboard.trailing_zeros() as usize;
                 key ^= self
-                    .zobrist_keys
+                    .zobrist_hashmap
                     .piece(Sides::BLACK, piece_type, square_idx);
                 black_bitboard &= black_bitboard - 1;
             }
         }
         // White to move so we don't include the side_hash
         // Castling should always be true for both sides on both King and Queen side.
-        key ^= self.zobrist_keys.castling(self.game_state.castling);
-
+        key ^= self.zobrist_hashmap.castling(self.game_state.castling);
         // handle the enpassant file:
-        if self.game_state.enpassant != NO_ENPASSANT {
-            key ^= self.zobrist_keys.enpassant(self.game_state.enpassant);
+        if let Some(enpassant_file_idx) = self.game_state.enpassant {
+            key ^= self.zobrist_hashmap.enpassant(enpassant_file_idx);
         }
-        if self.game_state.side_to_move == Sides::BLACK {
-            key ^= self.zobrist_keys.side();
+        if self.game_state.active_color == Sides::BLACK as u8 {
+            key ^= self.zobrist_hashmap.side();
         }
         key
     }

@@ -1,11 +1,12 @@
-use super::types::{CastlingRight, CastlingState, EnpassantState, NumOf, Side, Sides};
-
-pub const NO_ENPASSANT: EnpassantState = NumOf::ENPASSANT_FILES as EnpassantState;
+use super::{types::{CastlingRight, CastlingState, EnpassantState, NumOf, Sides}, zobrist::ZobristKey};
     
 pub struct GameState {
     pub castling: CastlingState,
-    pub enpassant: EnpassantState,
-    pub side_to_move: Side,
+    pub enpassant: Option<EnpassantState>,
+    pub active_color: u8,
+    pub half_move_clock: u8,
+    pub fullmove_counter: u16,
+    pub zobrist_key: ZobristKey,
 }
 impl GameState {
     pub fn new() -> Self {
@@ -16,8 +17,11 @@ impl GameState {
 
         GameState {
             castling: castling_state,
-            enpassant: NO_ENPASSANT,
-            side_to_move: Sides::WHITE,
+            enpassant: None,
+            active_color: Sides::WHITE as u8,
+            half_move_clock: 0,
+            fullmove_counter: 0,
+            zobrist_key: 0, 
         }
     }
     pub fn revoke_right(&mut self, right: CastlingRight) {
@@ -25,8 +29,11 @@ impl GameState {
         self.castling &= !(right as u8);
     }
     pub fn set_enpassant(&mut self, file_idx: EnpassantState) {
-        debug_assert!(file_idx < NO_ENPASSANT);
-        self.enpassant = file_idx;
+        debug_assert!(file_idx < NumOf::ENPASSANT_FILES as EnpassantState);
+        self.enpassant = Some(file_idx);
+    }
+    pub fn clear_enpassant(&mut self) {
+        self.enpassant = None;
     }
 
 }

@@ -7,9 +7,9 @@ use rand_pcg::Pcg64;
 
 const NUM_PIECE_HASHES: usize = NumOf::PIECE_TYPES * Sides::BOTH;
 pub type ZobristKey = u64;
-type PieceHashes = [[u64; NumOf::SQUARES]; NUM_PIECE_HASHES];
-type CastlingHashes = [u64; NumOf::CASTLING_STATES];
-type EnpassantHashes = [u64; NumOf::ENPASSANT_FILES];
+type PieceHashes = [[ZobristKey; NumOf::SQUARES]; NUM_PIECE_HASHES];
+type CastlingHashes = [ZobristKey; NumOf::CASTLING_STATES];
+type EnpassantHashes = [ZobristKey; NumOf::ENPASSANT_FILES];
 
 pub struct Zobrist {
     // 12 * 64 hashes

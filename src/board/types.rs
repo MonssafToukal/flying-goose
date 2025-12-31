@@ -15,12 +15,13 @@ pub fn print_bb(bitboard: BitBoard) -> () {
     }
 }
 
+pub const MAX_GAME_MOVES: u64 = 2048;
+
 pub type Piece = usize;
 pub type Square = usize;
 pub type Side = usize;
 pub type CastlingState = u8;
 pub type EnpassantState = u8;
-
 
 pub struct Sides;
 impl Sides {
