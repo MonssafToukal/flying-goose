@@ -1,5 +1,8 @@
-use super::{types::{CastlingRight, CastlingState, EnpassantState, NumOf, Sides}, zobrist::ZobristKey};
-    
+use super::{
+    types::{CastlingRight, CastlingState, EnpassantState, NumOf, Sides},
+    zobrist::ZobristKey,
+};
+
 #[derive(Clone, Copy, Debug)]
 pub struct GameState {
     pub castling: CastlingState,
@@ -22,7 +25,7 @@ impl GameState {
             active_color: Sides::WHITE as u8,
             half_move_clock: 0,
             fullmove_counter: 0,
-            zobrist_key: 0, 
+            zobrist_key: 0,
         }
     }
     pub fn revoke_right(&mut self, right: CastlingRight) {
@@ -36,5 +39,4 @@ impl GameState {
     pub fn clear_enpassant(&mut self) {
         self.enpassant = None;
     }
-
 }

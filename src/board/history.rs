@@ -10,7 +10,7 @@ impl GameHistory {
         Self {
             moves: [GameState::new(); MAX_GAME_MOVES as usize],
             count: 0,
-        } 
+        }
     }
     pub fn pop(&mut self) -> Option<GameState> {
         if self.count > 0 {
@@ -21,7 +21,7 @@ impl GameHistory {
         }
     }
     pub fn push(&mut self, game_state: GameState) {
-        self.moves[self.count]  = game_state;
+        self.moves[self.count] = game_state;
         self.count += 1;
     }
     pub fn get(&self, index: usize) -> &GameState {
@@ -32,7 +32,7 @@ impl GameHistory {
         self.count
     }
     pub fn clear(&mut self) {
-       self.count = 0;
+        self.count = 0;
     }
 }
 

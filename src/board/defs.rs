@@ -1,5 +1,6 @@
-use super::{history::GameHistory, piece::Pieces, state::GameState, types::{BitBoard, NumOf, Piece, Side, Sides}, zobrist::{Zobrist, ZobristKey}};
-
+use super::{
+    fen::{FenError}, history::GameHistory, piece::Pieces, state::GameState, types::{BitBoard, NumOf, Piece, Side, Sides}, zobrist::{Zobrist, ZobristKey}
+};
 
 pub struct Board {
     bb_pieces: [[BitBoard; NumOf::PIECE_TYPES]; Sides::BOTH],
@@ -71,5 +72,9 @@ impl Board {
             }
         }
         piece_list
+    }
+    pub fn setup(&mut self, fen: Option<&str>) -> Result<(), FenError> {
+        // Step 1. Split the FEN string into 6 parts that we need to parse.
+        todo!()
     }
 }
