@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+use super::{defs::Board, types::{NumOf, Sides}};
+
 const FEN_START_POSITION: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 const FEN_NR_PARTS: usize = 6;
 const SHORT_FEN_NR_PARTS: usize = 4;
@@ -53,6 +55,10 @@ pub fn split_fen_string(fen_str: Option<&str>) -> Result<Vec<String>,FenError> {
     return Ok(fen_parts);
 }
 
-pub fn fen_parse_pieces(part: &str) -> Result<Vec<String>, FenError> {
-    todo!()
+pub fn fen_parse_pieces(board: &mut Board, part: &str) -> Result<Vec<String>, FenError> {
+    let fen_files: Vec<String> = part.split(SLASH).map(String::from).collect();
+    if fen_files.len() != NumOf::RANKS {
+        return Err(FenError::PiecePart);
+    }
+    todo!();
 }

@@ -1,5 +1,5 @@
 use super::{
-    fen::{FenError}, history::GameHistory, piece::Pieces, state::GameState, types::{BitBoard, NumOf, Piece, Side, Sides}, zobrist::{Zobrist, ZobristKey}
+    fen::{FenError, split_fen_string}, history::GameHistory, piece::Pieces, state::GameState, types::{BitBoard, NumOf, Piece, Side, Sides}, zobrist::{Zobrist, ZobristKey}
 };
 
 pub struct Board {
@@ -75,6 +75,7 @@ impl Board {
     }
     pub fn setup(&mut self, fen: Option<&str>) -> Result<(), FenError> {
         // Step 1. Split the FEN string into 6 parts that we need to parse.
+        let fen_parts = split_fen_string(fen)?;
         todo!()
     }
 }

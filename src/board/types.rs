@@ -36,6 +36,7 @@ impl NumOf {
     pub const PIECE_TYPES: usize = 6;
     pub const CASTLING_STATES: usize = 16;
     pub const ENPASSANT_FILES: usize = 8;
+    pub const RANKS: usize = 8;
 }
 
 #[repr(u8)]
@@ -45,3 +46,11 @@ pub enum CastlingRight {
     BlackKingSide = 4,
     BlackQueenSide = 8,
 }
+
+pub const BITBOARD_SQUARES: [BitBoard; NumOf::SQUARES] = init_bb_squares();
+
+
+// TODO: create a table of bitboards for each square on the board
+ const fn init_bb_squares() -> [BitBoard; NumOf::SQUARES] {
+    todo!()
+ }
