@@ -66,5 +66,35 @@ pub fn fen_parse_pieces(board: &mut Board, part: &str) -> Result<Vec<String>, Fe
     if fen_files.len() != NumOf::RANKS {
         return Err(FenError::PiecePart);
     }
-    todo!();
+    for fen_file in fen_files {
+        let mut squares_found = 0;
+        fen_file.chars()
+                .for_each(|c| {
+                    match s {
+                        'k' => ,
+                        'q' => ,
+                        'r' => ,
+                        'b' => ,
+                        'n' => ,
+                        'p' => ,
+                        'K' => ,
+                        'Q' => ,
+                        'R' => ,
+                        'B' => ,
+                        'N' => ,
+                        'P' => ,
+                        _   => fen_parse_numbers(c),
+                    }
+        });
+    }
+}
+
+
+fn fen_parse_numbers(c: char) -> Result<usize, FenError> {
+    match c {
+        '1'..='8' => {
+            Ok(c.to_digit(10).unwrap() as usize)
+        },
+        _ => Err(FenError::PiecePart),
+    }
 }
