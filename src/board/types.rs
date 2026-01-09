@@ -49,8 +49,7 @@ pub enum CastlingRight {
 
 pub const BITBOARD_SQUARES: [BitBoard; NumOf::SQUARES] = init_bb_squares();
 
-
 // TODO: create a table of bitboards for each square on the board
- const fn init_bb_squares() -> [BitBoard; NumOf::SQUARES] {
+const fn init_bb_squares() -> [BitBoard; NumOf::SQUARES] {
     todo!()
- }
+}

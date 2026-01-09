@@ -1,5 +1,10 @@
 use super::{
-    fen::{FenError, split_fen_string}, history::GameHistory, piece::Pieces, state::GameState, types::{BitBoard, NumOf, Piece, Side, Sides}, zobrist::{Zobrist, ZobristKey}
+    fen::{FenError, split_fen_string},
+    history::GameHistory,
+    piece::Pieces,
+    state::GameState,
+    types::{BitBoard, NumOf, Piece, Side, Sides},
+    zobrist::{Zobrist, ZobristKey},
 };
 
 pub struct Board {
