@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use super::{
     defs::Board,
-    types::{NumOf, Pieces, Sides},
+    types::{CastlingRight, NumOf, Pieces, Sides},
 };
 
 const FEN_START_POSITION: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -109,6 +109,34 @@ pub fn fen_parse_pieces(board: &mut Board, part: &str) -> Result<(), FenError> {
     }
     Ok(())
 }
+
+pub fn fen_parse_colour(board: &mut Board, part: &str) -> Result<(), FenError> {
+  match part {
+      "w" => board.game_state.active_color = Sides::WHITE as u8,
+      "b" => board.game_state.active_color = Sides::BLACK as u8,
+      _ => return Err(FenError::SidePart),
+  }
+    Ok(())
+}
+
+pub fn fen_parse_castling_rights(board: &mut Board, part: &str) -> Result<(), FenError> {
+    if !(1..=4).contains(&part.len()) {
+        return Err(FenError::CastlingPart);
+    }
+    part.chars().try_for_each(|c| {
+       match c {
+           'k' => board.game_state.castling |= CastlingRight::BlackKingSide as u8,
+           'q' => board.game_state.castling |= CastlingRight::BlackQueenSide as u8,
+           'K' => board.game_state.castling |= CastlingRight::WhiteKingSide as u8,
+           'Q' => board.game_state.castling |= CastlingRight::WhiteQueenSide as u8,
+           '-' => (),
+           _ => return Err(FenError::CastlingPart),
+       } 
+        Ok(())
+    })?;
+    Ok(())
+}
+
 
 #[cfg(test)]
 mod tests {
