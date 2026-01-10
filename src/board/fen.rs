@@ -137,6 +137,9 @@ pub fn fen_parse_castling_rights(board: &mut Board, part: &str) -> Result<(), Fe
     Ok(())
 }
 
+pub fn fen_parse_enpassant(board: &mut Board, part: &str) -> Result<(), FenError> {
+    todo!()
+}
 
 #[cfg(test)]
 mod tests {
