@@ -2,18 +2,18 @@ use std::fmt::Display;
 
 use super::{
     defs::Board,
-    types::{NumOf, Sides},
+    types::{NumOf, Pieces, Sides},
 };
 
 const FEN_START_POSITION: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 const FEN_NR_PARTS: usize = 6;
 const SHORT_FEN_NR_PARTS: usize = 4;
-const LIST_OF_PIECES: &str = "kqrnbpKQRNBP";
 const SLASH: char = '/';
 const SPACE: char = ' ';
 const DASH: char = '-';
 const EM_DASH: char = '—';
 
+#[derive(Debug,PartialEq)]
 pub enum FenError {
     IncorrectLength,
     PiecePart,
@@ -58,43 +58,86 @@ pub fn split_fen_string(fen_str: Option<&str>) -> Result<Vec<String>, FenError> 
     if fen_parts.len() != FEN_NR_PARTS {
         return Err(FenError::IncorrectLength);
     }
-    return Ok(fen_parts);
+    Ok(fen_parts)
 }
 
-pub fn fen_parse_pieces(board: &mut Board, part: &str) -> Result<Vec<String>, FenError> {
+pub fn fen_parse_pieces(board: &mut Board, part: &str) -> Result<(), FenError> {
     let fen_files: Vec<String> = part.split(SLASH).map(String::from).collect();
     if fen_files.len() != NumOf::RANKS {
         return Err(FenError::PiecePart);
     }
-    for fen_file in fen_files {
-        let mut squares_found = 0;
-        fen_file.chars()
-                .for_each(|c| {
-                    match s {
-                        'k' => ,
-                        'q' => ,
-                        'r' => ,
-                        'b' => ,
-                        'n' => ,
-                        'p' => ,
-                        'K' => ,
-                        'Q' => ,
-                        'R' => ,
-                        'B' => ,
-                        'N' => ,
-                        'P' => ,
-                        _   => fen_parse_numbers(c),
+    let mut white_bb = board.bb_pieces[Sides::WHITE];
+    let mut black_bb = board.bb_pieces[Sides::BLACK];
+
+    for (i, fen_file) in fen_files.iter().enumerate() {
+        let rank = NumOf::RANKS - i - 1;
+        let mut file = 0;
+        fen_file.chars().try_for_each(|c| {
+            let square_idx = rank * 8 + file;
+            let mut is_piece_match = true;
+            match c {
+                'k' => black_bb[Pieces::KING] |= 1u64 << square_idx,
+                'q' => black_bb[Pieces::QUEEN] |= 1u64 << square_idx,
+                'r' => black_bb[Pieces::ROOK] |= 1u64 << square_idx,
+                'b' => black_bb[Pieces::BISHOP] |= 1u64 << square_idx,
+                'n' => black_bb[Pieces::KNIGHT] |= 1u64 << square_idx,
+                'p' => black_bb[Pieces::PAWN] |= 1u64 << square_idx,
+                'K' => white_bb[Pieces::KING] |= 1u64 << square_idx,
+                'Q' => white_bb[Pieces::QUEEN] |= 1u64 << square_idx,
+                'R' => white_bb[Pieces::ROOK] |= 1u64 << square_idx,
+                'B' => white_bb[Pieces::BISHOP] |= 1u64 << square_idx,
+                'N' => white_bb[Pieces::KNIGHT] |= 1u64 << square_idx,
+                'P' => white_bb[Pieces::PAWN] |= 1u64 << square_idx,
+                '1'..='8' => {
+                    is_piece_match = false;
+                    if let Some(num) = c.to_digit(10) {
+                        file += num as usize;
+                    } else {
+                        return Err(FenError::PiecePart);
                     }
-        });
+                }
+                _ => return Err(FenError::PiecePart),
+            }
+            if is_piece_match {
+                file += 1;
+            }
+            Ok(())
+        })?;
+        if file != NumOf::FILES {
+            return Err(FenError::PiecePart);
+        }
     }
+    Ok(())
 }
 
+#[cfg(test)]
+mod tests {
+    use crate::board::fen::FEN_START_POSITION;
 
-fn fen_parse_numbers(c: char) -> Result<usize, FenError> {
-    match c {
-        '1'..='8' => {
-            Ok(c.to_digit(10).unwrap() as usize)
-        },
-        _ => Err(FenError::PiecePart),
+    use super::*;
+
+    #[test]
+    fn test_split_fen_string() {
+        // Test 1: default position
+        let expected_start_position: Vec<String> = FEN_START_POSITION
+            .trim()
+            .replace(EM_DASH, DASH.encode_utf8(&mut [0; 4]))
+            .split(SPACE)
+            .map(String::from)
+            .collect();
+        let actual_start_position = split_fen_string(None).unwrap();
+        assert_eq!(actual_start_position.len(), expected_start_position.len());
+
+        for (expected_part, actual_part) in expected_start_position
+            .iter()
+            .zip(actual_start_position.iter())
+        {
+            assert_eq!(actual_part, expected_part);
+        }
+        // Test2: Incorrect length fen string
+        let invalid_fen_string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR wKQkq - 0 1";
+        let fen_split_res = split_fen_string(Some(invalid_fen_string));
+        let error = fen_split_res.unwrap_err();
+        assert_eq!(error, FenError::IncorrectLength);
     }
 }

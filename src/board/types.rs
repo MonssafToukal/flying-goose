@@ -23,6 +23,17 @@ pub type Side = usize;
 pub type CastlingState = u8;
 pub type EnpassantState = u8;
 
+pub struct Pieces;
+impl Pieces {
+    pub const KING: Piece = 0;
+    pub const QUEEN: Piece = 1;
+    pub const ROOK: Piece = 2;
+    pub const BISHOP: Piece = 3;
+    pub const KNIGHT: Piece = 4;
+    pub const PAWN: Piece = 5;
+    pub const NONE: Piece = 6;
+}
+
 pub struct Sides;
 impl Sides {
     pub const WHITE: Side = 0;
@@ -37,6 +48,7 @@ impl NumOf {
     pub const CASTLING_STATES: usize = 16;
     pub const ENPASSANT_FILES: usize = 8;
     pub const RANKS: usize = 8;
+    pub const FILES: usize = 8;
 }
 
 #[repr(u8)]
@@ -45,11 +57,4 @@ pub enum CastlingRight {
     WhiteQueenSide = 2,
     BlackKingSide = 4,
     BlackQueenSide = 8,
-}
-
-pub const BITBOARD_SQUARES: [BitBoard; NumOf::SQUARES] = init_bb_squares();
-
-// TODO: create a table of bitboards for each square on the board
-const fn init_bb_squares() -> [BitBoard; NumOf::SQUARES] {
-    todo!()
 }

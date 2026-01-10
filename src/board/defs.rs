@@ -1,18 +1,17 @@
 use super::{
     fen::{FenError, split_fen_string},
     history::GameHistory,
-    piece::Pieces,
     state::GameState,
-    types::{BitBoard, NumOf, Piece, Side, Sides},
+    types::{BitBoard, NumOf, Piece, Pieces, Side, Sides},
     zobrist::{Zobrist, ZobristKey},
 };
 
 pub struct Board {
-    bb_pieces: [[BitBoard; NumOf::PIECE_TYPES]; Sides::BOTH],
-    bb_sides: [BitBoard; Sides::BOTH],
-    piece_list: [Piece; NumOf::SQUARES],
-    game_state: GameState,
-    history: GameHistory,
+    pub bb_pieces: [[BitBoard; NumOf::PIECE_TYPES]; Sides::BOTH],
+    pub bb_sides: [BitBoard; Sides::BOTH],
+    pub piece_list: [Piece; NumOf::SQUARES],
+    pub game_state: GameState,
+    pub history: GameHistory,
     zobrist_hashmap: Zobrist,
 }
 

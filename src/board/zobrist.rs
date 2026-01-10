@@ -1,7 +1,4 @@
-use super::{
-    piece::Pieces,
-    types::{CastlingState, EnpassantState, NumOf, Piece, Side, Sides, Square},
-};
+use super::types::{CastlingState, EnpassantState, NumOf, Piece, Pieces, Side, Sides, Square};
 use rand::{Rng, SeedableRng};
 use rand_pcg::Pcg64;
 
