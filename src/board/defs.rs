@@ -77,6 +77,7 @@ impl Board {
         }
         piece_list
     }
+
     pub fn setup(&mut self, fen: Option<&str>) -> Result<(), FenError> {
         // Step 1. Split the FEN string into 6 parts that we need to parse.
         let fen_parts = split_fen_string(fen)?;

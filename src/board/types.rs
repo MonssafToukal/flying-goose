@@ -17,11 +17,14 @@ pub fn print_bb(bitboard: BitBoard) -> () {
 
 pub const MAX_GAME_MOVES: u64 = 2048;
 
+// 50 full moves equates to 100 half moves
+pub const FIFTY_MOVE_RULE: u8 = 100;
+
 pub type Piece = usize;
 pub type Square = usize;
 pub type Side = usize;
 pub type CastlingState = u8;
-pub type EnpassantState = u8;
+pub type EnpassantSquareIdx = u8;
 
 pub struct Pieces;
 impl Pieces {
@@ -57,4 +60,30 @@ pub enum CastlingRight {
     WhiteQueenSide = 2,
     BlackKingSide = 4,
     BlackQueenSide = 8,
+}
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+#[repr(u8)]
+pub enum Files {
+    A,
+    B,
+    C,
+    D,
+    E,
+    F,
+    G,
+    H,
+}
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+#[repr(u8)]
+pub enum Ranks {
+    R1,
+    R2,
+    R3,
+    R4,
+    R5,
+    R6,
+    R7,
+    R8,
 }

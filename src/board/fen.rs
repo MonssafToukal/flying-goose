@@ -1,8 +1,8 @@
-use std::fmt::Display;
+use std::{fmt::Display, iter::chain};
 
 use super::{
     defs::Board,
-    types::{CastlingRight, NumOf, Pieces, Sides},
+    types::{CastlingRight, FIFTY_MOVE_RULE, Files, MAX_GAME_MOVES, NumOf, Pieces, Ranks, Sides},
 };
 
 const FEN_START_POSITION: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -13,7 +13,7 @@ const SPACE: char = ' ';
 const DASH: char = '-';
 const EM_DASH: char = '—';
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum FenError {
     IncorrectLength,
     PiecePart,
@@ -111,11 +111,11 @@ pub fn fen_parse_pieces(board: &mut Board, part: &str) -> Result<(), FenError> {
 }
 
 pub fn fen_parse_colour(board: &mut Board, part: &str) -> Result<(), FenError> {
-  match part {
-      "w" => board.game_state.active_color = Sides::WHITE as u8,
-      "b" => board.game_state.active_color = Sides::BLACK as u8,
-      _ => return Err(FenError::SidePart),
-  }
+    match part {
+        "w" => board.game_state.active_color = Sides::WHITE as u8,
+        "b" => board.game_state.active_color = Sides::BLACK as u8,
+        _ => return Err(FenError::SidePart),
+    }
     Ok(())
 }
 
@@ -124,21 +124,67 @@ pub fn fen_parse_castling_rights(board: &mut Board, part: &str) -> Result<(), Fe
         return Err(FenError::CastlingPart);
     }
     part.chars().try_for_each(|c| {
-       match c {
-           'k' => board.game_state.castling |= CastlingRight::BlackKingSide as u8,
-           'q' => board.game_state.castling |= CastlingRight::BlackQueenSide as u8,
-           'K' => board.game_state.castling |= CastlingRight::WhiteKingSide as u8,
-           'Q' => board.game_state.castling |= CastlingRight::WhiteQueenSide as u8,
-           '-' => (),
-           _ => return Err(FenError::CastlingPart),
-       } 
+        match c {
+            'k' => board.game_state.castling |= CastlingRight::BlackKingSide as u8,
+            'q' => board.game_state.castling |= CastlingRight::BlackQueenSide as u8,
+            'K' => board.game_state.castling |= CastlingRight::WhiteKingSide as u8,
+            'Q' => board.game_state.castling |= CastlingRight::WhiteQueenSide as u8,
+            '-' => (),
+            _ => return Err(FenError::CastlingPart),
+        }
         Ok(())
     })?;
     Ok(())
 }
 
 pub fn fen_parse_enpassant(board: &mut Board, part: &str) -> Result<(), FenError> {
-    todo!()
+    if part.len() == 1 {
+        if let Some(c) = part.chars().nth(0) && c == DASH {
+            return Ok(());
+        }
+        if part.contains(DASH) {
+        }
+        return Err(FenError::EnpassantPart);
+    }
+    if part.len() == 2 {
+        let mut pchar = part.chars();
+        let file: Files = match pchar.nth(0).unwrap() {
+           'a' => Files::A,
+           'b' => Files::B,
+           'c' => Files::C,
+           'd' => Files::D,
+           'e' => Files::E,
+           'f' => Files::F,
+           'g' => Files::G,
+           'h' => Files::H,
+            _ => return Err(FenError::EnpassantPart),
+        };
+        let rank: Ranks = match pchar.nth(1).unwrap() {
+           '3' => Ranks::R3,
+           '6' => Ranks::R6,
+            _ => return Err(FenError::EnpassantPart),
+        };
+        let square_idx = (rank as u8) * 8 + (file as u8);
+        board.game_state.enpassant = Some(square_idx);
+        return Ok(());
+    }
+    Err(FenError::EnpassantPart)
+}
+
+pub fn half_move_clock(board: &mut Board, part: &str) -> Result<(),FenError> {
+    if let Ok(x) = part.parse::<u8>() && x <= FIFTY_MOVE_RULE {
+        board.game_state.half_move_clock = x;
+        return Ok(());
+    }
+    Err(FenError::HalfMovePart)
+}
+
+pub fn full_move_counter(board: &mut Board, part: &str) -> Result<(),FenError> {
+    if let Ok(x) = part.parse::<u16>() && x as u64 <= MAX_GAME_MOVES {
+        board.game_state.fullmove_counter = x;
+        return Ok(());
+    }
+    Err(FenError::FullMovePart)
 }
 
 #[cfg(test)]

@@ -1,4 +1,4 @@
-use super::types::{CastlingState, EnpassantState, NumOf, Piece, Pieces, Side, Sides, Square};
+use super::types::{CastlingState, EnpassantSquareIdx, NumOf, Piece, Pieces, Side, Sides, Square};
 use rand::{Rng, SeedableRng};
 use rand_pcg::Pcg64;
 
@@ -70,10 +70,10 @@ impl Zobrist {
         );
         self.castling_hashes[castling_state as usize]
     }
-    pub fn enpassant(&self, file_index: EnpassantState) -> ZobristKey {
+    pub fn enpassant(&self, file_index: EnpassantSquareIdx) -> ZobristKey {
         debug_assert!(
             file_index < NumOf::ENPASSANT_FILES as u8,
-            "Invalid en passant file index provided: {}",
+            "Invalid en passant file in EnpassantSquareIdx: {}",
             file_index
         );
         self.enpassant_hashes[file_index as usize]
