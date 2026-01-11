@@ -61,6 +61,7 @@ pub fn split_fen_string(fen_str: Option<&str>) -> Result<Vec<String>, FenError> 
     Ok(fen_parts)
 }
 
+// TODO: Write unit test for this
 pub fn fen_parse_pieces(board: &mut Board, part: &str) -> Result<(), FenError> {
     let fen_files: Vec<String> = part.split(SLASH).map(String::from).collect();
     if fen_files.len() != NumOf::RANKS {
@@ -110,6 +111,7 @@ pub fn fen_parse_pieces(board: &mut Board, part: &str) -> Result<(), FenError> {
     Ok(())
 }
 
+// TODO: Write unit test for this
 pub fn fen_parse_colour(board: &mut Board, part: &str) -> Result<(), FenError> {
     match part {
         "w" => board.game_state.active_color = Sides::WHITE as u8,
@@ -119,6 +121,7 @@ pub fn fen_parse_colour(board: &mut Board, part: &str) -> Result<(), FenError> {
     Ok(())
 }
 
+// TODO: Write unit test for this
 pub fn fen_parse_castling_rights(board: &mut Board, part: &str) -> Result<(), FenError> {
     if !(1..=4).contains(&part.len()) {
         return Err(FenError::CastlingPart);
@@ -137,6 +140,7 @@ pub fn fen_parse_castling_rights(board: &mut Board, part: &str) -> Result<(), Fe
     Ok(())
 }
 
+// TODO: Write unit test for this
 pub fn fen_parse_enpassant(board: &mut Board, part: &str) -> Result<(), FenError> {
     if part.len() == 1 {
         if let Some(c) = part.chars().nth(0) && c == DASH {
@@ -171,6 +175,7 @@ pub fn fen_parse_enpassant(board: &mut Board, part: &str) -> Result<(), FenError
     Err(FenError::EnpassantPart)
 }
 
+// TODO: Write unit test for this
 pub fn half_move_clock(board: &mut Board, part: &str) -> Result<(),FenError> {
     if let Ok(x) = part.parse::<u8>() && x <= FIFTY_MOVE_RULE {
         board.game_state.half_move_clock = x;
@@ -179,6 +184,7 @@ pub fn half_move_clock(board: &mut Board, part: &str) -> Result<(),FenError> {
     Err(FenError::HalfMovePart)
 }
 
+// TODO: Write unit test for this
 pub fn full_move_counter(board: &mut Board, part: &str) -> Result<(),FenError> {
     if let Ok(x) = part.parse::<u16>() && x as u64 <= MAX_GAME_MOVES {
         board.game_state.fullmove_counter = x;
