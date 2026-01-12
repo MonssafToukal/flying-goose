@@ -12,7 +12,7 @@ pub struct Board {
     pub piece_list: [Piece; NumOf::SQUARES],
     pub game_state: GameState,
     pub history: GameHistory,
-    zobrist_hashmap: Zobrist,
+    pub zobrist_hashmap: Zobrist,
 }
 
 impl Board {

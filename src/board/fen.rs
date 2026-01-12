@@ -195,7 +195,7 @@ pub fn full_move_counter(board: &mut Board, part: &str) -> Result<(),FenError> {
 
 #[cfg(test)]
 mod tests {
-    use crate::board::fen::FEN_START_POSITION;
+    use crate::board::{fen::FEN_START_POSITION, history::GameHistory, state::GameState, zobrist::Zobrist};
 
     use super::*;
 
@@ -222,5 +222,23 @@ mod tests {
         let fen_split_res = split_fen_string(Some(invalid_fen_string));
         let error = fen_split_res.unwrap_err();
         assert_eq!(error, FenError::IncorrectLength);
+    }
+
+    fn test_fen_parse_pieces() {
+        let mut test_board = Board{
+            bb_pieces: [[0; NumOf::PIECE_TYPES]; Sides::BOTH],
+            bb_sides: [0; Sides::BOTH],
+            piece_list: [Pieces::NONE; NumOf::SQUARES],
+            game_state: GameState::new(),
+            history: GameHistory::new(),
+            zobrist_hashmap: Zobrist::new(None),
+        };
+
+        // test start position
+        let parts = split_fen_string(Some(FEN_START_POSITION)).unwrap();
+        let res = fen_parse_pieces(&mut test_board, parts[1].as_str());
+        assert!(!res.is_err())
+        // check if the board has the right values
+        
     }
 }
