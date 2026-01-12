@@ -195,7 +195,7 @@ pub fn full_move_counter(board: &mut Board, part: &str) -> Result<(),FenError> {
 
 #[cfg(test)]
 mod tests {
-    use crate::board::{fen::FEN_START_POSITION, history::GameHistory, state::GameState, zobrist::Zobrist};
+    use crate::board::{fen::FEN_START_POSITION, history::GameHistory, state::GameState, types::SQUARE_MASKS, zobrist::Zobrist};
 
     use super::*;
 
@@ -224,6 +224,7 @@ mod tests {
         assert_eq!(error, FenError::IncorrectLength);
     }
 
+    #[test]
     fn test_fen_parse_pieces() {
         let mut test_board = Board{
             bb_pieces: [[0; NumOf::PIECE_TYPES]; Sides::BOTH],
@@ -237,8 +238,13 @@ mod tests {
         // test start position
         let parts = split_fen_string(Some(FEN_START_POSITION)).unwrap();
         let res = fen_parse_pieces(&mut test_board, parts[1].as_str());
-        assert!(!res.is_err())
+        assert!(!res.is_err());
         // check if the board has the right values
-        
+        // 1. Check the bb_sides array
+        const WHITE_START_MASK: u64 = (1u64 << NumOf::PIECES_PER_SIDE) - 1; 
+        assert_eq!(test_board.bb_sides[Sides::WHITE], WHITE_START_MASK);
+        const BLACK_START_MASK: u64 = !(1u64 << (NumOf::SQUARES - NumOf::PIECES_PER_SIDE) - 1);
+        assert_eq!(test_board.bb_sides[Sides::BLACK], BLACK_START_MASK);
     }
+
 }

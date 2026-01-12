@@ -47,6 +47,7 @@ impl Sides {
 pub struct NumOf;
 impl NumOf {
     pub const SQUARES: usize = 64;
+    pub const PIECES_PER_SIDE: usize = 16;
     pub const PIECE_TYPES: usize = 6;
     pub const CASTLING_STATES: usize = 16;
     pub const ENPASSANT_FILES: usize = 8;
@@ -88,7 +89,7 @@ pub enum Ranks {
     R8,
 }
 
-pub const SQUARE_MASKS: [u64; 64] = generate_square_masks();
+pub const SQUARE_MASKS: [u64; NumOf::SQUARES] = generate_square_masks();
 
 const fn generate_square_masks() -> [u64; NumOf::SQUARES] {
     let mut square_masks = [0u64; NumOf::SQUARES];
