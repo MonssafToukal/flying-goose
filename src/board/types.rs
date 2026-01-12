@@ -1,4 +1,7 @@
+use std::fmt::Display;
+
 pub type BitBoard = u64;
+
 pub fn print_bb(bitboard: BitBoard) -> () {
     const LAST_SQUARE_BIT: u64 = 63;
     // rank 0 is the h-rank
@@ -15,6 +18,8 @@ pub fn print_bb(bitboard: BitBoard) -> () {
     }
 }
 
+pub const EMPTY_BITBOARD: BitBoard  = 0;
+
 pub const MAX_GAME_MOVES: u64 = 2048;
 
 // 50 full moves equates to 100 half moves
@@ -26,6 +31,7 @@ pub type Side = usize;
 pub type CastlingState = u8;
 pub type EnpassantSquareIdx = u8;
 
+#[derive(Debug, PartialEq)]
 pub struct Pieces;
 impl Pieces {
     pub const KING: Piece = 0;

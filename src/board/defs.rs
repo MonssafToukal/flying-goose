@@ -2,9 +2,11 @@ use super::{
     fen::{FenError, split_fen_string},
     history::GameHistory,
     state::GameState,
-    types::{BitBoard, NumOf, Piece, Pieces, Side, Sides},
+    types::{BitBoard, EMPTY_BITBOARD, NumOf, Piece, Pieces, Side, Sides},
     zobrist::{Zobrist, ZobristKey},
 };
+
+
 
 pub struct Board {
     pub bb_pieces: [[BitBoard; NumOf::PIECE_TYPES]; Sides::BOTH],
@@ -16,6 +18,18 @@ pub struct Board {
 }
 
 impl Board {
+    // This is a debug function
+    pub fn new() -> Self {
+        Board{
+            bb_pieces: [[EMPTY_BITBOARD;NumOf::PIECE_TYPES]; Sides::BOTH],
+            bb_sides: [EMPTY_BITBOARD;Sides::BOTH],
+            piece_list: [Pieces::NONE;NumOf::SQUARES],
+            game_state: GameState::new(),
+            history: GameHistory::new(),
+            zobrist_hashmap: Zobrist::new(None),
+        }    
+    }
+
     pub fn get_pieces(&self, side: Side, piece: Piece) -> BitBoard {
         return self.bb_pieces[side][piece];
     }

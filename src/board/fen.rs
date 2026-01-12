@@ -2,7 +2,7 @@ use std::{fmt::Display, iter::chain};
 
 use super::{
     defs::Board,
-    types::{CastlingRight, FIFTY_MOVE_RULE, Files, MAX_GAME_MOVES, NumOf, Pieces, Ranks, Sides},
+    types::{CastlingRight, FIFTY_MOVE_RULE, Files, MAX_GAME_MOVES, NumOf, Pieces, Ranks, SQUARE_MASKS, Sides},
 };
 
 const FEN_START_POSITION: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -77,18 +77,18 @@ pub fn fen_parse_pieces(board: &mut Board, part: &str) -> Result<(), FenError> {
             let square_idx = rank * 8 + file;
             let mut is_piece_match = true;
             match c {
-                'k' => black_bb[Pieces::KING] |= 1u64 << square_idx,
-                'q' => black_bb[Pieces::QUEEN] |= 1u64 << square_idx,
-                'r' => black_bb[Pieces::ROOK] |= 1u64 << square_idx,
-                'b' => black_bb[Pieces::BISHOP] |= 1u64 << square_idx,
-                'n' => black_bb[Pieces::KNIGHT] |= 1u64 << square_idx,
-                'p' => black_bb[Pieces::PAWN] |= 1u64 << square_idx,
-                'K' => white_bb[Pieces::KING] |= 1u64 << square_idx,
-                'Q' => white_bb[Pieces::QUEEN] |= 1u64 << square_idx,
-                'R' => white_bb[Pieces::ROOK] |= 1u64 << square_idx,
-                'B' => white_bb[Pieces::BISHOP] |= 1u64 << square_idx,
-                'N' => white_bb[Pieces::KNIGHT] |= 1u64 << square_idx,
-                'P' => white_bb[Pieces::PAWN] |= 1u64 << square_idx,
+                'k' => black_bb[Pieces::KING] |= SQUARE_MASKS[square_idx],
+                'q' => black_bb[Pieces::QUEEN] |= SQUARE_MASKS[square_idx],
+                'r' => black_bb[Pieces::ROOK] |= SQUARE_MASKS[square_idx],
+                'b' => black_bb[Pieces::BISHOP] |= SQUARE_MASKS[square_idx],
+                'n' => black_bb[Pieces::KNIGHT] |= SQUARE_MASKS[square_idx],
+                'p' => black_bb[Pieces::PAWN] |= SQUARE_MASKS[square_idx],
+                'K' => white_bb[Pieces::KING] |= SQUARE_MASKS[square_idx],
+                'Q' => white_bb[Pieces::QUEEN] |= SQUARE_MASKS[square_idx],
+                'R' => white_bb[Pieces::ROOK] |= SQUARE_MASKS[square_idx],
+                'B' => white_bb[Pieces::BISHOP] |= SQUARE_MASKS[square_idx],
+                'N' => white_bb[Pieces::KNIGHT] |= SQUARE_MASKS[square_idx],
+                'P' => white_bb[Pieces::PAWN] |= SQUARE_MASKS[square_idx],
                 '1'..='8' => {
                     is_piece_match = false;
                     if let Some(num) = c.to_digit(10) {
@@ -107,6 +107,7 @@ pub fn fen_parse_pieces(board: &mut Board, part: &str) -> Result<(), FenError> {
         if file != NumOf::FILES {
             return Err(FenError::PiecePart);
         }
+
     }
     Ok(())
 }
