@@ -18,7 +18,7 @@ pub fn print_bb(bitboard: BitBoard) -> () {
     }
 }
 
-pub const EMPTY_BITBOARD: BitBoard  = 0;
+pub const EMPTY_BITBOARD: BitBoard = 0;
 
 pub const MAX_GAME_MOVES: u64 = 2048;
 

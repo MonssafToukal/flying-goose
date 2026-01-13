@@ -2,7 +2,7 @@ use std::{fmt::Display, iter::chain};
 
 use super::{
     defs::Board,
-    types::{CastlingRight, FIFTY_MOVE_RULE, Files, MAX_GAME_MOVES, NumOf, Pieces, Ranks, SQUARE_MASKS, Sides},
+    types::{CastlingRight, FIFTY_MOVE_RULE, Files, MAX_GAME_MOVES, NumOf, Pieces, Ranks, SQUARE_MASKS, Sides, print_bb},
 };
 
 const FEN_START_POSITION: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -41,7 +41,7 @@ impl Display for FenError {
     }
 }
 
-pub fn split_fen_string(fen_str: Option<&str>) -> Result<Vec<String>, FenError> {
+pub fn fen_split_string(fen_str: Option<&str>) -> Result<Vec<String>, FenError> {
     let fen_str = match fen_str {
         Some(s) => s,
         None => FEN_START_POSITION,
@@ -67,9 +67,6 @@ pub fn fen_parse_pieces(board: &mut Board, part: &str) -> Result<(), FenError> {
     if fen_files.len() != NumOf::RANKS {
         return Err(FenError::PiecePart);
     }
-    let mut white_bb = board.bb_pieces[Sides::WHITE];
-    let mut black_bb = board.bb_pieces[Sides::BLACK];
-
     for (i, fen_file) in fen_files.iter().enumerate() {
         let rank = NumOf::RANKS - i - 1;
         let mut file = 0;
@@ -77,18 +74,54 @@ pub fn fen_parse_pieces(board: &mut Board, part: &str) -> Result<(), FenError> {
             let square_idx = rank * 8 + file;
             let mut is_piece_match = true;
             match c {
-                'k' => black_bb[Pieces::KING] |= SQUARE_MASKS[square_idx],
-                'q' => black_bb[Pieces::QUEEN] |= SQUARE_MASKS[square_idx],
-                'r' => black_bb[Pieces::ROOK] |= SQUARE_MASKS[square_idx],
-                'b' => black_bb[Pieces::BISHOP] |= SQUARE_MASKS[square_idx],
-                'n' => black_bb[Pieces::KNIGHT] |= SQUARE_MASKS[square_idx],
-                'p' => black_bb[Pieces::PAWN] |= SQUARE_MASKS[square_idx],
-                'K' => white_bb[Pieces::KING] |= SQUARE_MASKS[square_idx],
-                'Q' => white_bb[Pieces::QUEEN] |= SQUARE_MASKS[square_idx],
-                'R' => white_bb[Pieces::ROOK] |= SQUARE_MASKS[square_idx],
-                'B' => white_bb[Pieces::BISHOP] |= SQUARE_MASKS[square_idx],
-                'N' => white_bb[Pieces::KNIGHT] |= SQUARE_MASKS[square_idx],
-                'P' => white_bb[Pieces::PAWN] |= SQUARE_MASKS[square_idx],
+                'k' => {
+                        board.bb_pieces[Sides::BLACK][Pieces::KING] |= SQUARE_MASKS[square_idx];
+                        board.bb_sides[Sides::BLACK] |= SQUARE_MASKS[square_idx];
+                },
+                'q' => {
+                        board.bb_pieces[Sides::BLACK][Pieces::QUEEN] |= SQUARE_MASKS[square_idx];
+                        board.bb_sides[Sides::BLACK] |= SQUARE_MASKS[square_idx];
+                },
+                'r' => {
+                        board.bb_pieces[Sides::BLACK][Pieces::ROOK] |= SQUARE_MASKS[square_idx];
+                        board.bb_sides[Sides::BLACK] |= SQUARE_MASKS[square_idx];
+                },
+                'b' => {
+                        board.bb_pieces[Sides::BLACK][Pieces::BISHOP] |= SQUARE_MASKS[square_idx];
+                        board.bb_sides[Sides::BLACK] |= SQUARE_MASKS[square_idx];
+                },
+                'n' => {
+                        board.bb_pieces[Sides::BLACK][Pieces::KNIGHT] |= SQUARE_MASKS[square_idx];
+                        board.bb_sides[Sides::BLACK] |= SQUARE_MASKS[square_idx];
+                },
+                'p' => {
+                        board.bb_pieces[Sides::BLACK][Pieces::PAWN] |= SQUARE_MASKS[square_idx];
+                        board.bb_sides[Sides::BLACK] |= SQUARE_MASKS[square_idx];
+                },
+                'K' => {
+                        board.bb_pieces[Sides::WHITE][Pieces::KING] |= SQUARE_MASKS[square_idx];
+                        board.bb_sides[Sides::WHITE] |= SQUARE_MASKS[square_idx];
+                },
+                'Q' => {
+                        board.bb_pieces[Sides::WHITE][Pieces::QUEEN] |= SQUARE_MASKS[square_idx];
+                        board.bb_sides[Sides::WHITE] |= SQUARE_MASKS[square_idx];
+                },
+                'R' => {
+                        board.bb_pieces[Sides::WHITE][Pieces::ROOK] |= SQUARE_MASKS[square_idx];
+                        board.bb_sides[Sides::WHITE] |= SQUARE_MASKS[square_idx];
+                },
+                'B' => {
+                        board.bb_pieces[Sides::WHITE][Pieces::BISHOP] |= SQUARE_MASKS[square_idx];
+                        board.bb_sides[Sides::WHITE] |= SQUARE_MASKS[square_idx];
+                },
+                'N' => {
+                        board.bb_pieces[Sides::WHITE][Pieces::KNIGHT] |= SQUARE_MASKS[square_idx];
+                        board.bb_sides[Sides::WHITE] |= SQUARE_MASKS[square_idx];
+                },
+                'P' => {
+                        board.bb_pieces[Sides::WHITE][Pieces::PAWN] |= SQUARE_MASKS[square_idx];
+                        board.bb_sides[Sides::WHITE] |= SQUARE_MASKS[square_idx];
+                },
                 '1'..='8' => {
                     is_piece_match = false;
                     if let Some(num) = c.to_digit(10) {
@@ -107,7 +140,6 @@ pub fn fen_parse_pieces(board: &mut Board, part: &str) -> Result<(), FenError> {
         if file != NumOf::FILES {
             return Err(FenError::PiecePart);
         }
-
     }
     Ok(())
 }
@@ -209,7 +241,7 @@ mod tests {
             .split(SPACE)
             .map(String::from)
             .collect();
-        let actual_start_position = split_fen_string(None).unwrap();
+        let actual_start_position = fen_split_string(None).unwrap();
         assert_eq!(actual_start_position.len(), expected_start_position.len());
 
         for (expected_part, actual_part) in expected_start_position
@@ -220,7 +252,7 @@ mod tests {
         }
         // Test2: Incorrect length fen string
         let invalid_fen_string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR wKQkq - 0 1";
-        let fen_split_res = split_fen_string(Some(invalid_fen_string));
+        let fen_split_res = fen_split_string(Some(invalid_fen_string));
         let error = fen_split_res.unwrap_err();
         assert_eq!(error, FenError::IncorrectLength);
     }
@@ -237,14 +269,14 @@ mod tests {
         };
 
         // test start position
-        let parts = split_fen_string(Some(FEN_START_POSITION)).unwrap();
-        let res = fen_parse_pieces(&mut test_board, parts[1].as_str());
+        let parts = fen_split_string(Some(FEN_START_POSITION)).unwrap();
+        let res = fen_parse_pieces(&mut test_board, parts[0].as_str());
         assert!(!res.is_err());
         // check if the board has the right values
         // 1. Check the bb_sides array
         const WHITE_START_MASK: u64 = (1u64 << NumOf::PIECES_PER_SIDE) - 1; 
         assert_eq!(test_board.bb_sides[Sides::WHITE], WHITE_START_MASK);
-        const BLACK_START_MASK: u64 = !(1u64 << (NumOf::SQUARES - NumOf::PIECES_PER_SIDE) - 1);
+        const BLACK_START_MASK: u64 = !((1u64 << (NumOf::SQUARES - NumOf::PIECES_PER_SIDE)) - 1);
         assert_eq!(test_board.bb_sides[Sides::BLACK], BLACK_START_MASK);
     }
 
