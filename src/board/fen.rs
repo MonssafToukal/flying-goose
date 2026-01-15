@@ -228,7 +228,7 @@ pub fn full_move_counter(board: &mut Board, part: &str) -> Result<(),FenError> {
 
 #[cfg(test)]
 mod tests {
-    use crate::board::{fen::FEN_START_POSITION, history::GameHistory, state::GameState, types::SQUARE_MASKS, zobrist::Zobrist};
+    use crate::board::{fen::FEN_START_POSITION, history::GameHistory, state::GameState, types::{Files, SQUARE_MASKS, SquareCoord}, zobrist::Zobrist};
 
     use super::*;
 
@@ -278,6 +278,116 @@ mod tests {
         assert_eq!(test_board.bb_sides[Sides::WHITE], WHITE_START_MASK);
         const BLACK_START_MASK: u64 = !((1u64 << (NumOf::SQUARES - NumOf::PIECES_PER_SIDE)) - 1);
         assert_eq!(test_board.bb_sides[Sides::BLACK], BLACK_START_MASK);
+        let white_pieces = test_board.bb_pieces[Sides::WHITE];
+        let black_pieces = test_board.bb_pieces[Sides::BLACK];
+        for (piece_type, (wp, bp)) in white_pieces.iter().zip(black_pieces.iter()).enumerate() {
+            match piece_type {
+                Pieces::KING => {
+                    let white_king_square = SquareCoord {
+                        file: Files::E,
+                        rank: Ranks::R1,
+                    };
+                    let black_king_square = SquareCoord {
+                        file: Files::E,
+                        rank: Ranks::R8,
+                    };
+                    let white_king_square_idx = white_king_square.to_usize();
+                    let black_king_square_idx = black_king_square.to_usize();
+                    assert_eq!(*wp, SQUARE_MASKS[white_king_square_idx]);
+                    assert_eq!(*bp, SQUARE_MASKS[black_king_square_idx]);
+                },
+
+                Pieces::QUEEN => {
+                    let white_queen_square = SquareCoord {
+                        file: Files::D,
+                        rank: Ranks::R1,
+                    };
+                    let black_queen_square = SquareCoord {
+                        file: Files::D,
+                        rank: Ranks::R8,
+                    };
+                    let white_queen_square_idx = white_queen_square.to_usize();
+                    let black_queen_square_idx = black_queen_square.to_usize();
+                    assert_eq!(*wp, SQUARE_MASKS[white_queen_square_idx]);
+                    assert_eq!(*bp, SQUARE_MASKS[black_queen_square_idx]);
+                },
+                Pieces::ROOK => {
+                    let white_rook_squares: [SquareCoord; 2]  = [SquareCoord{
+                        file: Files::A,
+                        rank: Ranks::R1,
+                    },
+                    SquareCoord{
+                        file: Files::H,
+                        rank: Ranks::R1,
+                    }];
+                    let white_rook_mask = SQUARE_MASKS[white_rook_squares[0].to_usize()] | SQUARE_MASKS[white_rook_squares[1].to_usize()];
+                    let black_rook_squares: [SquareCoord; 2]  = [SquareCoord{
+                        file: Files::A,
+                        rank: Ranks::R8,
+                    },
+                    SquareCoord{
+                        file: Files::H,
+                        rank: Ranks::R8,
+                    }];
+                    let black_rook_mask = SQUARE_MASKS[black_rook_squares[0].to_usize()] | SQUARE_MASKS[black_rook_squares[1].to_usize()];
+                    assert_eq!(*wp, white_rook_mask);
+                    assert_eq!(*bp, black_rook_mask);
+
+                },
+                Pieces::BISHOP => {
+                    let white_bishop_squares: [SquareCoord; 2]  = [SquareCoord{
+                        file: Files::C,
+                        rank: Ranks::R1,
+                    },
+                    SquareCoord{
+                        file: Files::F,
+                        rank: Ranks::R1,
+                    }];
+                    let white_bishop_mask = SQUARE_MASKS[white_bishop_squares[0].to_usize()] | SQUARE_MASKS[white_bishop_squares[1].to_usize()];
+                    let black_bishop_squares: [SquareCoord; 2]  = [SquareCoord{
+                        file: Files::C,
+                        rank: Ranks::R8,
+                    },
+                    SquareCoord{
+                        file: Files::F,
+                        rank: Ranks::R8,
+                    }];
+                    let black_bishop_mask = SQUARE_MASKS[black_bishop_squares[0].to_usize()] | SQUARE_MASKS[black_bishop_squares[1].to_usize()];
+                    assert_eq!(*wp, white_bishop_mask);
+                    assert_eq!(*bp, black_bishop_mask);
+                },
+                Pieces::KNIGHT => {
+                    let white_knight_squares: [SquareCoord; 2]  = [SquareCoord{
+                        file: Files::B,
+                        rank: Ranks::R1,
+                    },
+                    SquareCoord{
+                        file: Files::G,
+                        rank: Ranks::R1,
+                    }];
+                    let white_knight_mask = SQUARE_MASKS[white_knight_squares[0].to_usize()] | SQUARE_MASKS[white_knight_squares[1].to_usize()];
+                    let black_knight_squares: [SquareCoord; 2]  = [SquareCoord{
+                        file: Files::B,
+                        rank: Ranks::R8,
+                    },
+                    SquareCoord{
+                        file: Files::G,
+                        rank: Ranks::R8,
+                    }];
+                    let black_knight_mask = SQUARE_MASKS[black_knight_squares[0].to_usize()] | SQUARE_MASKS[black_knight_squares[1].to_usize()];
+                    assert_eq!(*wp, white_knight_mask);
+                    assert_eq!(*bp, black_knight_mask);
+                },
+                Pieces::PAWN => {
+                    let white_pawn_masks = ((1u64 << 16) - 1) & !((1u64 << 8)-1);
+                    let black_pawn_masks = (1u64 << 56) - 1 & ! ((1u64 << 48) - 1);
+                    assert_eq!(*wp, white_pawn_masks);
+                    assert_eq!(*bp, black_pawn_masks);
+                },
+                _ => {},
+            }
+        }
+
     }
 
 }

@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+use num_enum::{FromPrimitive, TryFromPrimitive};
+
 pub type BitBoard = u64;
 
 pub fn print_bb(bitboard: BitBoard) -> () {
@@ -69,7 +71,7 @@ pub enum CastlingRight {
     BlackQueenSide = 8,
 }
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy, TryFromPrimitive)]
 #[repr(u8)]
 pub enum Files {
     A,
@@ -82,7 +84,7 @@ pub enum Files {
     H,
 }
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy, TryFromPrimitive)]
 #[repr(u8)]
 pub enum Ranks {
     R1,
@@ -93,6 +95,20 @@ pub enum Ranks {
     R6,
     R7,
     R8,
+}
+
+pub struct SquareCoord {
+    pub file: Files,
+    pub rank: Ranks,
+}
+
+impl SquareCoord {
+    pub fn to_usize(&self) -> usize {
+        let file = usize::from(self.file as u8);
+        let rank = usize::from(self.rank as u8);
+
+        (rank * NumOf::RANKS) + file
+    }
 }
 
 pub const SQUARE_MASKS: [u64; NumOf::SQUARES] = generate_square_masks();
