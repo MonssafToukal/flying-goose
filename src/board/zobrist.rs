@@ -8,6 +8,7 @@ type PieceHashes = [[ZobristKey; NumOf::SQUARES]; NUM_PIECE_HASHES];
 type CastlingHashes = [ZobristKey; NumOf::CASTLING_STATES];
 type EnpassantHashes = [ZobristKey; NumOf::ENPASSANT_FILES];
 
+#[derive(Debug, Clone, Copy)]
 pub struct Zobrist {
     // 12 * 64 hashes
     pieces_hash: PieceHashes,

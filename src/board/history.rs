@@ -1,5 +1,6 @@
 use super::{state::GameState, types::MAX_GAME_MOVES};
 
+#[derive(Debug, Clone, Copy)]
 pub struct GameHistory {
     moves: [GameState; MAX_GAME_MOVES as usize],
     count: usize,

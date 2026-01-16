@@ -1,11 +1,12 @@
 use super::{
-    fen::{FenError, fen_split_string},
+    fen::{FEN_PARSE_FUNCS, FenError, fen_split_string},
     history::GameHistory,
     state::GameState,
     types::{BitBoard, EMPTY_BITBOARD, NumOf, Piece, Pieces, Side, Sides},
     zobrist::{Zobrist, ZobristKey},
 };
 
+#[derive(Debug, Clone)]
 pub struct Board {
     pub bb_pieces: [[BitBoard; NumOf::PIECE_TYPES]; Sides::BOTH],
     pub bb_sides: [BitBoard; Sides::BOTH],
@@ -93,6 +94,12 @@ impl Board {
     pub fn setup(&mut self, fen: Option<&str>) -> Result<(), FenError> {
         // Step 1. Split the FEN string into 6 parts that we need to parse.
         let fen_parts = fen_split_string(fen)?;
-        todo!()
+        // expensive operation, should probably do something else here
+        let mut new_board =  self.clone();
+        FEN_PARSE_FUNCS.iter().zip(fen_parts.iter()).try_for_each(|(fen_parser, part)| {
+            fen_parser(&mut new_board, part.as_str())
+        })?;
+        *self = new_board;
+        Ok(())
     }
 }
