@@ -8,21 +8,23 @@ mod board;
 
 
 fn main() {
-    // Let's test the parsing function for the fen strings
-    // By default, it will use the default position
-    let fen_parts = fen_split_string(None).unwrap();
-    let board =  &mut Board::new();
-    let fen_parts = fen_split_string(None).unwrap();
-    fen_parse_pieces(board, fen_parts[0].as_str()).unwrap();
-    fen_parse_colour(board, fen_parts[1].as_str()).expect("could not parse the colour for the fen string");
-    assert_eq!(board.game_state.active_color, Sides::WHITE as u8);
-    // test castling rights
-    fen_parse_castling_rights(board, fen_parts[2].as_str()).unwrap();
-    let all_castling_rights = CastlingRight::BlackKingSide as u8
-        | CastlingRight::BlackQueenSide as u8
-        | CastlingRight::WhiteKingSide as u8
-        | CastlingRight::WhiteQueenSide as u8;
-    assert_eq!(all_castling_rights, board.game_state.castling);
-    // test enpassant
-    fen_parse_enpassant(board, fen_parts[3].as_str()).unwrap();
+    let fen_string_test_cases = [
+        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+        "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 1 3",
+        "k7/8/8/8/8/8/8/7K w - - 49 100",
+        "4k3/8/8/8/8/8/8/4K3 w - - 100 150",
+        "k7/8/8/8/8/8/8/7K w - - 0005 10",
+        "8/8/8/8/8/8/8/8 w - - 0",
+        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 12.5 1",
+        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -",
+        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - -1 1"
+    ];
+    for fen_string in fen_string_test_cases {
+        let mut board =  Board::new();
+        let setup_result = board.setup(Some(fen_string));
+        match setup_result {
+            Ok(_) => println!("fen string: {fen_string} setup passed"),
+            Err(e) => println!("fen string {fen_string}\n Error occured: {e}"),
+        }
+    }
 }
