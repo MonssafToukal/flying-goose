@@ -17,7 +17,6 @@ pub struct Board {
 }
 
 impl Board {
-    // This is a debug function
     pub fn new() -> Self {
         Board {
             bb_pieces: [[EMPTY_BITBOARD; NumOf::PIECE_TYPES]; Sides::BOTH],
@@ -27,6 +26,30 @@ impl Board {
             history: GameHistory::new(),
             zobrist_hashmap: Zobrist::new(None),
         }
+    }
+
+    pub fn init(&mut self) {
+        if self.bb_sides == [EMPTY_BITBOARD; Sides::BOTH] {
+            let (white_side, black_side) = self.init_bb_sides();
+            self.bb_sides[Sides::WHITE] = white_side;
+            self.bb_sides[Sides::BLACK] = black_side;
+        }
+        self.piece_list = self.get_piece_list();
+        self.game_state.zobrist_key = self.init_zobrist_key();
+    }
+
+    fn init_bb_sides(&self) -> (BitBoard, BitBoard) {
+        let mut white_side = EMPTY_BITBOARD;
+        let mut black_side = EMPTY_BITBOARD;
+        for (piece_type, (wp, bp)) in self.bb_pieces[Sides::WHITE]
+            .iter()
+            .zip(self.bb_pieces[Sides::BLACK].iter())
+            .enumerate()
+        {
+            white_side |= *wp;
+            black_side |= *bp;
+        }
+        (white_side, black_side)
     }
 
     pub fn get_pieces(&self, side: Side, piece: Piece) -> BitBoard {
@@ -91,14 +114,15 @@ impl Board {
         piece_list
     }
 
-    pub fn setup(&mut self, fen: Option<&str>) -> Result<(), FenError> {
+    pub fn fen_setup(&mut self, fen: Option<&str>) -> Result<(), FenError> {
         // Step 1. Split the FEN string into 6 parts that we need to parse.
         let fen_parts = fen_split_string(fen)?;
         // expensive operation, should probably do something else here
-        let mut new_board =  self.clone();
-        FEN_PARSE_FUNCS.iter().zip(fen_parts.iter()).try_for_each(|(fen_parser, part)| {
-            fen_parser(&mut new_board, part.as_str())
-        })?;
+        let mut new_board = self.clone();
+        FEN_PARSE_FUNCS
+            .iter()
+            .zip(fen_parts.iter())
+            .try_for_each(|(fen_parser, part)| fen_parser(&mut new_board, part.as_str()))?;
         *self = new_board;
         Ok(())
     }
