@@ -2,7 +2,7 @@ use super::{
     fen::{FEN_PARSE_FUNCS, FenError, fen_split_string},
     history::GameHistory,
     state::GameState,
-    types::{BitBoard, EMPTY_BITBOARD, NumOf, Piece, Pieces, Side, Sides},
+    types::{BitBoard, EMPTY_BITBOARD, NumOf, Piece, Pieces, SQUARE_MASKS, Side, Sides, SquareCoord},
     zobrist::{Zobrist, ZobristKey},
 };
 
@@ -26,6 +26,18 @@ impl Board {
             history: GameHistory::new(),
             zobrist_hashmap: Zobrist::new(None),
         }
+    }
+
+    fn put_piece(&mut self, piece: Piece, side: Side, square: SquareCoord) {
+        let square_idx =  square.to_usize();
+        self.bb_pieces[side][piece] |= SQUARE_MASKS[square_idx];
+        self.bb_sides[side] |= SQUARE_MASKS[square_idx];
+        self.piece_list[square_idx] = piece;
+    }
+
+    fn remove_piece(&mut self, piece: Piece, side: Side, square: SquareCoord) {
+        let square_idx =  square.to_usize();
+        todo!()
     }
 
     pub fn init(&mut self) {
