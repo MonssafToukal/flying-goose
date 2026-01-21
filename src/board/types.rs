@@ -8,6 +8,7 @@ pub fn print_bb(bitboard: BitBoard) -> () {
     const LAST_SQUARE_BIT: u64 = 63;
     // rank 0 is the h-rank
     for rank in 0..8 {
+        print!("{}", NumOf::RANKS - rank as usize);
         for file in (0..8).rev() {
             let mask: u64 = 1u64 << (LAST_SQUARE_BIT - (rank * 8) - file);
             if mask & bitboard != 0 {
@@ -31,7 +32,6 @@ pub type Piece = usize;
 pub type Square = usize;
 pub type Side = usize;
 pub type CastlingState = u8;
-pub type EnpassantSquareIdx = u8;
 
 #[derive(Debug, PartialEq)]
 pub struct Pieces;
@@ -97,6 +97,7 @@ pub enum Ranks {
     R8,
 }
 
+#[derive(Debug, Copy, Clone)]
 pub struct SquareCoord {
     pub file: Files,
     pub rank: Ranks,

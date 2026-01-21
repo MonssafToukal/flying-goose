@@ -1,12 +1,11 @@
-use std::{fmt::Display, iter::chain};
-
-use super::{
-    defs::Board,
+use crate::board::{
+    Board,
     types::{
         CastlingRight, FIFTY_MOVE_RULE, Files, MAX_GAME_MOVES, NumOf, Pieces, Ranks, SQUARE_MASKS,
-        Sides, print_bb,
+        Sides, SquareCoord,
     },
 };
+use std::{fmt::Display, iter::chain};
 
 type FenParseFunc = fn(board: &mut Board, part: &str) -> Result<(), FenError>;
 
@@ -215,8 +214,10 @@ pub fn fen_parse_enpassant(board: &mut Board, part: &str) -> Result<(), FenError
             '6' => Ranks::R6,
             _ => return Err(FenError::EnpassantPart),
         };
-        let square_idx = (rank as u8) * 8 + (file as u8);
-        board.game_state.enpassant = Some(square_idx);
+        board.game_state.enpassant = Some(SquareCoord {
+            file: file,
+            rank: rank,
+        });
         return Ok(());
     }
     Err(FenError::EnpassantPart)

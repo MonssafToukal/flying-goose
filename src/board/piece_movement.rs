@@ -1,6 +1,6 @@
-use super::{
-    defs::Board,
-    types::{Piece, Pieces, SQUARE_MASKS, Side, Sides, Square, SquareCoord},
+use crate::board::{
+    Board,
+    types::{Piece, Pieces, SQUARE_MASKS, Side, SquareCoord},
 };
 
 impl Board {
@@ -32,7 +32,6 @@ impl Board {
     }
 
     pub fn set_enpassant_move(&mut self, square: SquareCoord) {
-        self.game_state.zobrist_key ^= self.zobrist_hashmap.enpassant(square.file as u8);
-        
+        self.game_state.zobrist_key ^= self.zobrist_hashmap.enpassant(square.file);
     }
 }

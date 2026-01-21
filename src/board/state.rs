@@ -1,12 +1,12 @@
 use super::{
-    types::{CastlingRight, CastlingState, EnpassantSquareIdx, Sides},
+    types::{CastlingRight, CastlingState, Sides, SquareCoord},
     zobrist::ZobristKey,
 };
 
 #[derive(Clone, Copy, Debug)]
 pub struct GameState {
     pub castling: CastlingState,
-    pub enpassant: Option<EnpassantSquareIdx>,
+    pub enpassant: Option<SquareCoord>,
     pub active_color: u8,
     pub half_move_clock: u8,
     pub fullmove_counter: u16,
@@ -32,8 +32,8 @@ impl GameState {
         // We don't use XOR here because we want to clear the castling regardless of its previous state
         self.castling &= !(right as u8);
     }
-    pub fn set_enpassant(&mut self, file_idx: EnpassantSquareIdx) {
-        self.enpassant = Some(file_idx as u8);
+    pub fn set_enpassant(&mut self, square: SquareCoord) {
+        self.enpassant = Some(square);
     }
     pub fn clear_enpassant(&mut self) {
         self.enpassant = None;

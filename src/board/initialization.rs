@@ -1,19 +1,29 @@
-use super::{
-    defs::Board,
-    fen::{FEN_PARSE_FUNCS, FenError, fen_split_string},
-    types::{BitBoard, EMPTY_BITBOARD, Sides},
-    zobrist::ZobristKey,
-};
+use crate::board::Board;
+use crate::board::fen::{FEN_PARSE_FUNCS, FenError, fen_split_string};
+use crate::board::history::GameHistory;
+use crate::board::state::GameState;
+use crate::board::types::{BitBoard, EMPTY_BITBOARD, NumOf, Pieces, Side, Sides};
+use crate::board::zobrist::{Zobrist, ZobristKey};
 
 impl Board {
-    pub fn init(&mut self) {
-        if self.bb_sides == [EMPTY_BITBOARD; Sides::BOTH] {
-            let (white_side, black_side) = self.init_bb_sides();
-            self.bb_sides[Sides::WHITE] = white_side;
-            self.bb_sides[Sides::BLACK] = black_side;
+    fn new() -> Self {
+        Board {
+            bb_pieces: [[EMPTY_BITBOARD; NumOf::PIECE_TYPES]; Sides::BOTH],
+            bb_sides: [EMPTY_BITBOARD; Sides::BOTH],
+            piece_list: [Pieces::NONE; NumOf::SQUARES],
+            game_state: GameState::new(),
+            history: GameHistory::new(),
+            zobrist_hashmap: Zobrist::new(None),
         }
-        self.piece_list = self.get_piece_list();
-        self.game_state.zobrist_key = self.init_zobrist_key();
+    }
+    pub fn init() -> Self {
+        let mut board = Self::new();
+        let (white_side, black_side) = board.init_bb_sides();
+        board.bb_sides[Sides::WHITE] = white_side;
+        board.bb_sides[Sides::BLACK] = black_side;
+        board.piece_list = board.get_piece_list();
+        board.game_state.zobrist_key = board.init_zobrist_key();
+        board
     }
 
     fn init_bb_sides(&self) -> (BitBoard, BitBoard) {
@@ -30,7 +40,7 @@ impl Board {
         (white_side, black_side)
     }
 
-    pub fn init_zobrist_key(&self) -> ZobristKey {
+    fn init_zobrist_key(&self) -> ZobristKey {
         let mut key = 0u64;
         let white_bbs = self.bb_pieces[Sides::WHITE];
         let black_bbs = self.bb_pieces[Sides::BLACK];
@@ -56,8 +66,8 @@ impl Board {
         // Castling should always be true for both sides on both King and Queen side.
         key ^= self.zobrist_hashmap.castling(self.game_state.castling);
         // handle the enpassant file:
-        if let Some(enpassant_file_idx) = self.game_state.enpassant {
-            key ^= self.zobrist_hashmap.enpassant(enpassant_file_idx);
+        if let Some(enpassant_square) = self.game_state.enpassant {
+            key ^= self.zobrist_hashmap.enpassant(enpassant_square.file);
         }
         if self.game_state.active_color == Sides::BLACK as u8 {
             key ^= self.zobrist_hashmap.side();
@@ -65,6 +75,7 @@ impl Board {
         key
     }
 
+    // TODO: write this method without relying on cloning the board
     pub fn fen_setup(&mut self, fen: Option<&str>) -> Result<(), FenError> {
         // Step 1. Split the FEN string into 6 parts that we need to parse.
         let fen_parts = fen_split_string(fen)?;
