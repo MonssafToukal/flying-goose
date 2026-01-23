@@ -8,7 +8,7 @@ pub fn print_bb(bitboard: BitBoard) -> () {
     const LAST_SQUARE_BIT: u64 = 63;
     // rank 0 is the last rank from white side pov
     for rank in 0..8 {
-        print!("{} ", NumOf::RANKS - rank as usize);
+        print!("{}  ", NumOf::RANKS - rank as usize);
         for file in (0..8).rev() {
             let mask: u64 = 1u64 << (LAST_SQUARE_BIT - (rank * 8) - file);
             if mask & bitboard != 0 {
@@ -19,7 +19,8 @@ pub fn print_bb(bitboard: BitBoard) -> () {
         }
         println!();
     }
-    println!("  a b c d e f g h");
+    println!();
+    println!("   a b c d e f g h");
 }
 
 pub const EMPTY_BITBOARD: BitBoard = 0;
