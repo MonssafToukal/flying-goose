@@ -28,9 +28,9 @@ impl NumOf {
     pub const FILES: usize = 8;
 }
 
-pub const SQUARE_MASKS: [u64; NumOf::SQUARES] = generate_square_masks();
+pub const SQUARE_MASKS: [BitBoard; NumOf::SQUARES] = generate_square_masks();
 
-const fn generate_square_masks() -> [u64; NumOf::SQUARES] {
+const fn generate_square_masks() -> [BitBoard; NumOf::SQUARES] {
     let mut square_masks = [0u64; NumOf::SQUARES];
     let mut i = 0;
     while i < NumOf::SQUARES {
