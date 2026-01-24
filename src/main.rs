@@ -2,6 +2,7 @@
 
 pub mod board;
 pub mod types;
+pub mod movement;
 
 use board::{
     Board, fen::FenError, types::{Files, Pieces, Ranks, Sides, SquareCoord, print_bb}
