@@ -1,8 +1,8 @@
 use std::fmt::Display;
 
 use num_enum::{FromPrimitive, TryFromPrimitive};
+use crate::types::BitBoard;
 
-pub type BitBoard = u64;
 
 pub fn print_bb(bitboard: BitBoard) -> () {
     const LAST_SQUARE_BIT: u64 = 63;

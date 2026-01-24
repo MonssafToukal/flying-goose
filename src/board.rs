@@ -7,10 +7,9 @@ pub mod state;
 pub mod types;
 pub mod zobrist;
 
-use crate::board::types::{NumOf, Piece, Sides};
+use crate::{board::types::{NumOf, Piece, Sides}, types::BitBoard};
 use history::GameHistory;
 use state::GameState;
-use types::BitBoard;
 use zobrist::Zobrist;
 
 #[derive(Debug, Clone)]

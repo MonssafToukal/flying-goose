@@ -1,6 +1,7 @@
 #![allow(warnings)]
 
 pub mod board;
+pub mod types;
 
 use board::{
     Board, fen::FenError, types::{Files, Pieces, Ranks, Sides, SquareCoord, print_bb}
