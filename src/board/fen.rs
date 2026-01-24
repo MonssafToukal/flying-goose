@@ -1,9 +1,12 @@
-use crate::board::{
-    Board,
-    types::{
-        CastlingRight, FIFTY_MOVE_RULE, Files, MAX_GAME_MOVES, NumOf, Pieces, Ranks, SQUARE_MASKS,
-        Sides, SquareCoord,
+use crate::{
+    board::{
+        Board,
+        types::{
+            CastlingRight, FIFTY_MOVE_RULE, Files, MAX_GAME_MOVES, Pieces, Ranks, Sides,
+            SquareCoord,
+        },
     },
+    types::{NumOf, SQUARE_MASKS},
 };
 use std::{fmt::Display, iter::chain};
 
@@ -251,9 +254,10 @@ mod tests {
         fen::FEN_START_POSITION,
         history::GameHistory,
         state::GameState,
-        types::{Files, SQUARE_MASKS, SquareCoord},
+        types::{Files, SquareCoord},
         zobrist::Zobrist,
     };
+    use crate::types::SQUARE_MASKS;
 
     use super::*;
 

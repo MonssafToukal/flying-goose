@@ -2,8 +2,11 @@ use crate::board::Board;
 use crate::board::fen::{FEN_PARSE_FUNCS, FenError, fen_split_string};
 use crate::board::history::GameHistory;
 use crate::board::state::GameState;
-use crate::board::{types::{EMPTY_BITBOARD, NumOf, Pieces, Sides}, zobrist::{Zobrist, ZobristKey}};
-use crate::types::BitBoard;
+use crate::board::{
+    types::{EMPTY_BITBOARD, Pieces, Sides},
+    zobrist::{Zobrist, ZobristKey},
+};
+use crate::types::{BitBoard, NumOf};
 
 impl Board {
     fn new() -> Self {

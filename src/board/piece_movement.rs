@@ -1,6 +1,9 @@
-use crate::board::{
-    Board,
-    types::{Piece, Pieces, SQUARE_MASKS, Side, SquareCoord},
+use crate::{
+    board::{
+        Board,
+        types::{Piece, Pieces, Side, SquareCoord},
+    },
+    types::SQUARE_MASKS,
 };
 
 impl Board {

@@ -7,7 +7,10 @@ pub mod state;
 pub mod types;
 pub mod zobrist;
 
-use crate::{board::types::{NumOf, Piece, Sides}, types::BitBoard};
+use crate::{
+    board::types::{Piece, Sides},
+    types::{BitBoard, NumOf},
+};
 use history::GameHistory;
 use state::GameState;
 use zobrist::Zobrist;

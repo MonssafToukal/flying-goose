@@ -1,8 +1,11 @@
-use crate::board::{
-    Board,
-    types::{NumOf, Piece, Pieces, Side, Sides},
-};
 use crate::types::BitBoard;
+use crate::{
+    board::{
+        Board,
+        types::{Piece, Pieces, Side, Sides},
+    },
+    types::NumOf,
+};
 
 impl Board {
     pub fn get_pieces(&self, side: Side, piece: Piece) -> BitBoard {

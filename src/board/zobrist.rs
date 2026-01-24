@@ -1,4 +1,6 @@
-use super::types::{CastlingState, Files, NumOf, Piece, Pieces, Side, Sides, Square};
+use crate::types::NumOf;
+
+use super::types::{CastlingState, Files, Piece, Pieces, Side, Sides, Square};
 use rand::{Rng, SeedableRng};
 use rand_pcg::Pcg64;
 

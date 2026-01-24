@@ -1,27 +1,7 @@
 use std::fmt::Display;
 
+use crate::types::{BitBoard, NumOf};
 use num_enum::{FromPrimitive, TryFromPrimitive};
-use crate::types::BitBoard;
-
-
-pub fn print_bb(bitboard: BitBoard) -> () {
-    const LAST_SQUARE_BIT: u64 = 63;
-    // rank 0 is the last rank from white side pov
-    for rank in 0..8 {
-        print!("{}  ", NumOf::RANKS - rank as usize);
-        for file in (0..8).rev() {
-            let mask: u64 = 1u64 << (LAST_SQUARE_BIT - (rank * 8) - file);
-            if mask & bitboard != 0 {
-                print!("1 ");
-            } else {
-                print!("0 ");
-            }
-        }
-        println!();
-    }
-    println!();
-    println!("   a b c d e f g h");
-}
 
 pub const EMPTY_BITBOARD: BitBoard = 0;
 
@@ -52,17 +32,6 @@ impl Sides {
     pub const WHITE: Side = 0;
     pub const BLACK: Side = 1;
     pub const BOTH: Side = 2;
-}
-
-pub struct NumOf;
-impl NumOf {
-    pub const SQUARES: usize = 64;
-    pub const PIECES_PER_SIDE: usize = 16;
-    pub const PIECE_TYPES: usize = 6;
-    pub const CASTLING_STATES: usize = 16;
-    pub const ENPASSANT_FILES: usize = 8;
-    pub const RANKS: usize = 8;
-    pub const FILES: usize = 8;
 }
 
 #[repr(u8)]
@@ -113,4 +82,3 @@ impl SquareCoord {
         (rank * NumOf::RANKS) + file
     }
 }
-

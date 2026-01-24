@@ -1,12 +1,11 @@
 #![allow(warnings)]
 
 pub mod board;
-pub mod types;
 pub mod movement;
+pub mod types;
 
-use board::{
-    Board, fen::FenError, types::{Files, Pieces, Ranks, Sides, SquareCoord, print_bb}
-};
+use board::{Board, fen::FenError, types::Sides};
+use types::print_bb;
 
 fn main() -> Result<(), FenError> {
     let mut board = Board::init();
