@@ -4,8 +4,12 @@ pub mod board;
 pub mod movement;
 pub mod types;
 
-use board::{Board, fen::FenError, types::{Files, Ranks, Sides, SquareCoord}};
-use movement::sliders::ROOK_OCCUPANCY_MASKS;
+use board::{
+    Board,
+    fen::FenError,
+    types::{Files, Ranks, Sides, SquareCoord},
+};
+use movement::sliders::ROOK_BLOCKERS_MASK;
 use types::{SQUARE_MASKS, print_bb};
 
 fn main() -> Result<(), FenError> {
@@ -16,7 +20,7 @@ fn main() -> Result<(), FenError> {
     // print_bb(ROOK_OCCUPANCY_MASKS[square.to_usize()]);
     // print_bb(SQUARE_MASKS[square.to_usize()]);
 
-    ROOK_OCCUPANCY_MASKS.iter().for_each(|bb| {
+    ROOK_BLOCKERS_MASK.iter().for_each(|bb| {
         print_bb(*bb);
     });
 
