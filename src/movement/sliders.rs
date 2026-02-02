@@ -65,12 +65,13 @@ const fn get_blockers_mask(initial_rank: u8, initial_file: u8) -> BitBoard {
     occupancy_mask
 }
 
-pub fn find_all_blockers_subsets() -> Vec<BitBoard> {
-    let mut subsets: Vec<u8> = Vec::new();
-    let test_bitset: u8 = 0b00100011;
-    subsets.push(0u8);
-    while let Some(current_subset)  = subsets.last() && *current_subset != test_bitset {
-        todo!()
+pub fn find_all_blockers_subsets(bitset: BitBoard) -> Vec<BitBoard> {
+    let mut subsets: Vec<BitBoard> = Vec::new();
+    subsets.push(EMPTY_BITBOARD);
+    while let Some(current_subset) = subsets.last() && *current_subset != bitset { 
+        let next_subset: BitBoard = current_subset.wrapping_sub(bitset) & bitset;
+        subsets.push(next_subset);
     }
-    todo!()
+    subsets
 }
+ 

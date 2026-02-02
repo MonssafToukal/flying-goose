@@ -9,20 +9,13 @@ use board::{
     fen::FenError,
     types::{Files, Ranks, Sides, SquareCoord},
 };
-use movement::sliders::ROOK_BLOCKERS_MASK;
-use types::{SQUARE_MASKS, print_bb};
+use movement::sliders::{ROOK_BLOCKERS_MASK, find_all_blockers_subsets};
+use types::{BitBoard, SQUARE_MASKS, print_bb};
 
 fn main() -> Result<(), FenError> {
-    // let square = SquareCoord{
-    //     file: Files::D,
-    //     rank: Ranks::R4,
-    // };
-    // print_bb(ROOK_OCCUPANCY_MASKS[square.to_usize()]);
-    // print_bb(SQUARE_MASKS[square.to_usize()]);
-
-    ROOK_BLOCKERS_MASK.iter().for_each(|bb| {
-        print_bb(*bb);
-    });
-
+    let bitset: BitBoard = ROOK_BLOCKERS_MASK[0];
+    let subsets = find_all_blockers_subsets(bitset);
+    println!("{}", subsets.len());
+    subsets.iter().for_each(|s| print_bb(*s));
     Ok(())
 }
