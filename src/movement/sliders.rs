@@ -7,7 +7,10 @@ use crate::{
     types::{BitBoard, NumOf},
 };
 
-pub const ROOK_BLOCKERS_MASK: [BitBoard; NumOf::SQUARES] = generate_rook_blockers_masks();
+use super::magic::MagicEntry;
+
+pub const ROOK_BLOCKERS_MASK: &[BitBoard; NumOf::SQUARES] = &generate_rook_blockers_masks();
+// pub const ROOK_MAGIC_ENTRIES: &[MagicEntry; NumOf::SQUARES] = todo!();
 
 // To make this a const function, I need to hardcode some values unfortunately
 const fn generate_rook_blockers_masks() -> [BitBoard; NumOf::SQUARES] {
@@ -65,13 +68,29 @@ const fn get_blockers_mask(initial_rank: u8, initial_file: u8) -> BitBoard {
     occupancy_mask
 }
 
-pub fn find_all_blockers_subsets(bitset: BitBoard) -> Vec<BitBoard> {
+pub fn get_all_blockers_subsets(bitset: &BitBoard) -> Vec<BitBoard> {
     let mut subsets: Vec<BitBoard> = Vec::new();
     subsets.push(EMPTY_BITBOARD);
-    while let Some(current_subset) = subsets.last() && *current_subset != bitset { 
-        let next_subset: BitBoard = current_subset.wrapping_sub(bitset) & bitset;
+    while let Some(current_subset) = subsets.last() && *current_subset != *bitset { 
+        let next_subset: BitBoard = current_subset.wrapping_sub(*bitset) & bitset;
         subsets.push(next_subset);
     }
     subsets
+}
+
+pub fn find_magics(square: SquareCoord) -> Vec<MagicEntry> {
+    let mut magic_entries: Vec<MagicEntry> = Vec::new();
+    // All blockers configurations for that mask
+    let blocker_configurations = get_all_blockers_subsets(&ROOK_BLOCKERS_MASK[square.to_usize()]);
+    
+    // For each blocker configuration, find the eligible rook moves bitboard associated to it.
+    // There are many ways to do that, one way would be to simply check each square in the direction that a rook moves
+    // and stop when you find an obstacle.
+    // Consider the blockers as being an opponent's piece such that the blocker could be captured by default.
+
+    // Once the moves are found for each blocker configurations
+    // We can try generating magics for each of these blockers
+
+    todo!()
 }
  

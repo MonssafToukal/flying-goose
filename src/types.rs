@@ -1,3 +1,5 @@
+use crate::board::types::EMPTY_BITBOARD;
+
 pub type BitBoard = u64;
 pub fn print_bb(bitboard: BitBoard) -> () {
     const LAST_SQUARE_BIT: u64 = 63;
@@ -17,6 +19,7 @@ pub fn print_bb(bitboard: BitBoard) -> () {
     println!();
     println!("   a b c d e f g h");
 }
+
 pub struct NumOf;
 impl NumOf {
     pub const SQUARES: usize = 64;
