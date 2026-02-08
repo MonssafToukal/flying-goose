@@ -14,7 +14,7 @@ use types::{BitBoard, SQUARE_MASKS, print_bb};
 
 fn main() -> Result<(), FenError> {
     let bitset: BitBoard = ROOK_BLOCKERS_MASK[0];
-    let subsets = get_all_blockers_subsets(&bitset);
+    let subsets = get_all_blockers_subsets(bitset);
     println!("{}", subsets.len());
     subsets.iter().for_each(|s| print_bb(*s));
     Ok(())
