@@ -9,8 +9,8 @@ use board::{
     fen::FenError,
     types::{Files, Ranks, Sides, SquareCoord},
 };
-use movement::{magic::{generate_slider_blockers_masks, get_all_blockers_subsets}, sliders::{BISHOP_SLIDER, ROOK_SLIDER}};
-use types::{BitBoard, SQUARE_MASKS, print_bb};
+use movement::sliders::{BISHOP_SLIDER, ROOK_SLIDER, generate_slider_blockers_masks, get_all_blockers_subsets};
+use types::{BitBoard, print_bb};
 
 fn main() -> Result<(), FenError> {
     let rook_blockers = generate_slider_blockers_masks(&ROOK_SLIDER);

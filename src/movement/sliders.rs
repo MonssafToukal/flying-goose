@@ -1,5 +1,5 @@
 use crate::board::types::{Direction, EMPTY_BITBOARD, MAX_DIRECTIONS, SquareCoord};
-use crate::types::{BitBoard, SQUARE_MASKS};
+use crate::types::{BitBoard, NumOf, SQUARE_MASKS};
 
 pub struct Slider {
     pub directions: [Direction; MAX_DIRECTIONS],
@@ -42,4 +42,25 @@ impl Slider {
         });
         blockers_mask
     }
+}
+
+pub fn generate_slider_blockers_masks(slider_piece: &Slider) -> [BitBoard; NumOf::SQUARES] {
+    let mut slider_blockers_masks: [BitBoard; NumOf::SQUARES] = [EMPTY_BITBOARD; NumOf::SQUARES];
+    for (square_idx, blocker_mask) in slider_blockers_masks.iter_mut().enumerate() {
+        let current_square = SquareCoord::try_from(square_idx as u8).unwrap();
+        *blocker_mask = slider_piece.get_blockers(current_square);
+    }
+    slider_blockers_masks
+}
+
+pub fn get_all_blockers_subsets(blocker_mask: BitBoard) -> Vec<BitBoard> {
+    let mut subsets: Vec<BitBoard> = Vec::new();
+    subsets.push(EMPTY_BITBOARD);
+    while let Some(current_subset) = subsets.last()
+        && *current_subset != blocker_mask
+    {
+        let next_subset: BitBoard = current_subset.wrapping_sub(blocker_mask) & blocker_mask;
+        subsets.push(next_subset);
+    }
+    subsets
 }

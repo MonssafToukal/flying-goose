@@ -1,7 +1,7 @@
 use crate::{
     board::types::{EMPTY_BITBOARD, Files, Ranks, SquareCoord},
     movement::sliders::Slider,
-    types::{BitBoard, NumOf, SQUARE_MASKS, print_bb},
+    types::{BitBoard, NumOf, SQUARE_MASKS},
 };
 use rand::{Rng, SeedableRng};
 use rand_pcg::Pcg64;
@@ -31,16 +31,6 @@ impl MagicEntry {
     }
 }
 
-pub fn generate_slider_blockers_masks(slider_piece: &Slider) -> [BitBoard; NumOf::SQUARES] {
-    let mut slider_blockers_masks: [BitBoard; NumOf::SQUARES] = [EMPTY_BITBOARD; NumOf::SQUARES];
-    for (square_idx, blocker_mask) in slider_blockers_masks.iter_mut().enumerate() {
-        let current_square = SquareCoord::try_from(square_idx as u8).unwrap();
-        *blocker_mask = slider_piece.get_blockers(current_square);
-        print_bb(*blocker_mask);
-    }
-    slider_blockers_masks
-}
-
 pub fn find_magics(square: SquareCoord) -> Vec<MagicEntry> {
     // let mut magic_entries: Vec<MagicEntry> = Vec::new();
     // // All blockers configurations for that mask
@@ -57,14 +47,3 @@ pub fn find_magics(square: SquareCoord) -> Vec<MagicEntry> {
     todo!()
 }
 
-pub fn get_all_blockers_subsets(blocker_mask: BitBoard) -> Vec<BitBoard> {
-    let mut subsets: Vec<BitBoard> = Vec::new();
-    subsets.push(EMPTY_BITBOARD);
-    while let Some(current_subset) = subsets.last()
-        && *current_subset != blocker_mask
-    {
-        let next_subset: BitBoard = current_subset.wrapping_sub(blocker_mask) & blocker_mask;
-        subsets.push(next_subset);
-    }
-    subsets
-}
