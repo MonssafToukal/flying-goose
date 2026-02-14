@@ -1,6 +1,7 @@
 use std::fmt::Display;
 
-use crate::types::{BitBoard, NumOf};
+use crate::types::BitBoard;
+use crate::types::NumOf;
 use num_enum::{FromPrimitive, TryFromPrimitive};
 
 pub const EMPTY_BITBOARD: BitBoard = 0;
@@ -55,6 +56,35 @@ pub enum Files {
     H,
 }
 
+#[derive(Debug)]
+pub enum BoardError {
+    FileOutOfBound,
+    RankOutOfBound,
+    SquareOutOfBound,
+}
+
+impl Display for BoardError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let err = match self {
+            BoardError::FileOutOfBound => "File does not exist or is out of bound",
+            BoardError::RankOutOfBound => "Rank does not exist or is out of bound",
+            BoardError::SquareOutOfBound => "Square does not exist or is out of bound",
+        };
+        write!(f, "{err}")
+    }
+}
+
+impl Files {
+    pub fn next(&self, x_direction: i8) -> Result<Self, BoardError> {
+        let next_file_number = *self as i16 + x_direction as i16;
+        if next_file_number < 0 || next_file_number >= NumOf::FILES as i16 {
+            return Err(BoardError::FileOutOfBound);
+        }
+        let next_file_number = next_file_number as u8;
+        Ok(Self::try_from(next_file_number).unwrap())
+    }
+}
+
 #[derive(Debug, PartialEq, Clone, Copy, TryFromPrimitive)]
 #[repr(u8)]
 pub enum Ranks {
@@ -68,6 +98,21 @@ pub enum Ranks {
     R8,
 }
 
+impl Ranks {
+    pub fn next(&self, x_direction: i8) -> Result<Self, BoardError> {
+        let next_rank_number = *self as i16 + x_direction as i16;
+        if next_rank_number < 0 || next_rank_number >= NumOf::RANKS as i16 {
+            return Err(BoardError::RankOutOfBound);
+        }
+        let next_rank_number = next_rank_number as u8;
+        Ok(Self::try_from(next_rank_number).unwrap())
+    }
+}
+
+// Direction is a vector (x,y) to denote the direction a sliding piece can take
+pub type Direction = (i8, i8);
+pub const MAX_DIRECTIONS: usize = 4;
+
 #[derive(Debug, Copy, Clone)]
 pub struct SquareCoord {
     pub file: Files,
@@ -80,5 +125,38 @@ impl SquareCoord {
         let rank = usize::from(self.rank as u8);
 
         (rank * NumOf::RANKS) + file
+    }
+
+    pub fn next(self, direction: Direction) -> Result<Self, BoardError> {
+        let (x_direction, y_direction) = direction;
+        let next_file = self.file.next(x_direction)?;
+        let next_rank = self.rank.next(y_direction)?;
+        Ok(SquareCoord {
+            file: next_file,
+            rank: next_rank,
+        })
+    }
+}
+
+impl TryFrom<u8> for SquareCoord {
+    type Error = BoardError;
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        if value >= NumOf::SQUARES as u8 {
+            return Err(BoardError::SquareOutOfBound);
+        }
+        let rank_number = value / NumOf::RANKS as u8;
+        let file_number = value - (rank_number * NumOf::RANKS as u8);
+        let rank = match Ranks::try_from(rank_number) {
+            Ok(r) => r,
+            Err(_) => return Err(BoardError::RankOutOfBound),
+        };
+        let file = match Files::try_from(file_number) {
+            Ok(r) => r,
+            Err(_) => return Err(BoardError::FileOutOfBound),
+        };
+        Ok(SquareCoord {
+            file: file,
+            rank: rank,
+        })
     }
 }
