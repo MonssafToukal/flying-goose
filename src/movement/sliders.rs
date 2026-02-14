@@ -5,6 +5,14 @@ pub struct Slider {
     pub directions: [Direction; MAX_DIRECTIONS],
 }
 
+pub const ROOK_SLIDER: Slider = Slider {
+    directions: [(-1, 0), (1, 0), (0, -1), (0, 1)],
+};
+
+pub const BISHOP_SLIDER: Slider = Slider {
+    directions: [(-1, -1), (-1, 1), (1, -1), (1, 1)],
+};
+
 impl Slider {
     pub fn get_moves(&self, square: SquareCoord, blocker_mask: BitBoard) -> BitBoard {
         let mut move_bitboard: BitBoard = EMPTY_BITBOARD;
@@ -21,12 +29,14 @@ impl Slider {
         }
         move_bitboard
     }
-    fn get_blockers(&self, square: SquareCoord) -> BitBoard {
+    pub fn get_blockers(&self, square: SquareCoord) -> BitBoard {
         let mut blockers_mask = EMPTY_BITBOARD;
-        let mut current_square = square;
         self.directions.iter().for_each(|direction| {
-            while let Ok(next_square) = square.next(*direction) {
-                blockers_mask |= SQUARE_MASKS[next_square.to_usize()];
+            let mut current_square = square;
+            while let Ok(next_square) = current_square.next(*direction) {
+                if let Ok(next_next_square) = next_square.next(*direction) {
+                    blockers_mask |= SQUARE_MASKS[next_square.to_usize()];
+                }
                 current_square = next_square;
             }
         });

@@ -1,7 +1,7 @@
 use crate::{
     board::types::{EMPTY_BITBOARD, Files, Ranks, SquareCoord},
     movement::sliders::Slider,
-    types::{BitBoard, NumOf, SQUARE_MASKS},
+    types::{BitBoard, NumOf, SQUARE_MASKS, print_bb},
 };
 use rand::{Rng, SeedableRng};
 use rand_pcg::Pcg64;
@@ -31,26 +31,14 @@ impl MagicEntry {
     }
 }
 
-// pub const ROOK_MAGIC_ENTRIES: &[MagicEntry; NumOf::SQUARES] = todo!();
-
-// TODO: NEEDS FIX -> fn currently doesn't return blockers but the possibles moves a rook can do when the board is empty for each square
-pub fn generate_rook_blockers_masks() -> [BitBoard; NumOf::SQUARES] {
-    let mut rook_blockers_masks: [BitBoard; NumOf::SQUARES] = [EMPTY_BITBOARD; NumOf::SQUARES];
-    let rook = Slider {
-        directions: [(-1, 0), (1, 0), (0, -1), (0, 1)],
-    };
-    for (i, blocker_mask) in rook_blockers_masks.iter_mut().enumerate() {
-        rook.directions.iter().for_each(|direction| {
-            let mut current_square = SquareCoord::try_from(i as u8).unwrap();
-            while let Ok(next_square) = current_square.next(*direction) {
-                if let Ok(next_next_square) = next_square.next(*direction) {
-                    *blocker_mask |= SQUARE_MASKS[next_square.to_usize()];
-                }
-                current_square = next_square;
-            }
-        });
-    };
-    rook_blockers_masks
+pub fn generate_slider_blockers_masks(slider_piece: &Slider) -> [BitBoard; NumOf::SQUARES] {
+    let mut slider_blockers_masks: [BitBoard; NumOf::SQUARES] = [EMPTY_BITBOARD; NumOf::SQUARES];
+    for (square_idx, blocker_mask) in slider_blockers_masks.iter_mut().enumerate() {
+        let current_square = SquareCoord::try_from(square_idx as u8).unwrap();
+        *blocker_mask = slider_piece.get_blockers(current_square);
+        print_bb(*blocker_mask);
+    }
+    slider_blockers_masks
 }
 
 pub fn find_magics(square: SquareCoord) -> Vec<MagicEntry> {
