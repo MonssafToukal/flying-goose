@@ -16,17 +16,16 @@ pub const BISHOP_SLIDER: Slider = Slider {
 impl Slider {
     pub fn get_moves(&self, square: SquareCoord, blocker_mask: BitBoard) -> BitBoard {
         let mut move_bitboard: BitBoard = EMPTY_BITBOARD;
-        for direction in self.directions {
-            let mut current_square: SquareCoord = square;
-            while let Ok(next_square) = current_square.next(direction) {
+        self.directions.iter().for_each(|direction| {
+            let mut current_square = square;
+            while let Ok(next_square) = current_square.next(*direction) {
                 move_bitboard |= SQUARE_MASKS[next_square.to_usize()];
-                // check if blocker exists on the next square
                 if SQUARE_MASKS[next_square.to_usize()] & blocker_mask != 0 {
-                    break;
+                   break; 
                 }
                 current_square = next_square;
             }
-        }
+        });
         move_bitboard
     }
     pub fn get_blockers(&self, square: SquareCoord) -> BitBoard {
