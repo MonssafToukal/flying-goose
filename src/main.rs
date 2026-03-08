@@ -13,8 +13,8 @@ use movement::sliders::{BISHOP_SLIDER, ROOK_SLIDER, Slider, get_all_blockers_sub
 use types::{BitBoard, print_bb};
 
 fn main() -> Result<(), FenError> {
-    let rook_blockers = ROOK_SLIDER.get_slider_blockers_masks();
-    let bishop_blockers = BISHOP_SLIDER.get_slider_blockers_masks();
+    let rook_blockers = ROOK_SLIDER.get_all_blockers();
+    let bishop_blockers = BISHOP_SLIDER.get_all_blockers();
     let blockers = bishop_blockers;
     let square = SquareCoord::try_from(0u8).unwrap();
 
