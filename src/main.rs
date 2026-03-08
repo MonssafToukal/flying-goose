@@ -9,25 +9,27 @@ use board::{
     fen::FenError,
     types::{Files, Ranks, Sides, SquareCoord},
 };
-use movement::sliders::{BISHOP_SLIDER, ROOK_SLIDER, generate_slider_blockers_masks, get_all_blockers_subsets};
+use movement::sliders::{BISHOP_SLIDER, ROOK_SLIDER, Slider, get_all_blockers_subsets};
 use types::{BitBoard, print_bb};
 
 fn main() -> Result<(), FenError> {
-    let rook_blockers = generate_slider_blockers_masks(&ROOK_SLIDER);
-    let bishop_blockers = generate_slider_blockers_masks(&BISHOP_SLIDER);
+    let rook_blockers = ROOK_SLIDER.get_slider_blockers_masks();
+    let bishop_blockers = BISHOP_SLIDER.get_slider_blockers_masks();
+    let blockers = bishop_blockers;
     let square = SquareCoord::try_from(0u8).unwrap();
-    println!("Rook blockers for square A1");
-    print_bb(rook_blockers[0]);
 
-    let bitset: BitBoard = rook_blockers[0];
+    println!("blockers for square A1");
+    print_bb(blockers[0]);
+
+    let bitset: BitBoard = bishop_blockers[0];
     let subsets = get_all_blockers_subsets(bitset);
-    let subset = subsets[1902];
+    let subset = subsets[34];
 
-    println!("first blocker configuration for rook on A1");
+    println!("blocker configuration subset:");
     print_bb(subset);
 
-    let rook_moves = ROOK_SLIDER.get_moves(square, subset);
-    println!("eligible rook moves");
-    print_bb(rook_moves);
+    let moves = BISHOP_SLIDER.get_moves(square, subset);
+    println!("eligible moves");
+    print_bb(moves);
     Ok(())
 }

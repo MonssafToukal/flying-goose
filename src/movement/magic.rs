@@ -46,4 +46,3 @@ pub fn find_magics(square: SquareCoord) -> Vec<MagicEntry> {
 
     todo!()
 }
-

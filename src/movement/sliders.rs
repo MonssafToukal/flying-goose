@@ -21,7 +21,7 @@ impl Slider {
             while let Ok(next_square) = current_square.next(*direction) {
                 move_bitboard |= SQUARE_MASKS[next_square.to_usize()];
                 if SQUARE_MASKS[next_square.to_usize()] & blocker_mask != 0 {
-                   break; 
+                    break;
                 }
                 current_square = next_square;
             }
@@ -41,15 +41,16 @@ impl Slider {
         });
         blockers_mask
     }
-}
 
-pub fn generate_slider_blockers_masks(slider_piece: &Slider) -> [BitBoard; NumOf::SQUARES] {
-    let mut slider_blockers_masks: [BitBoard; NumOf::SQUARES] = [EMPTY_BITBOARD; NumOf::SQUARES];
-    for (square_idx, blocker_mask) in slider_blockers_masks.iter_mut().enumerate() {
-        let current_square = SquareCoord::try_from(square_idx as u8).unwrap();
-        *blocker_mask = slider_piece.get_blockers(current_square);
+    pub fn get_slider_blockers_masks(&self) -> [BitBoard; NumOf::SQUARES] {
+        let mut slider_blockers_masks: [BitBoard; NumOf::SQUARES] =
+            [EMPTY_BITBOARD; NumOf::SQUARES];
+        for (square_idx, blocker_mask) in slider_blockers_masks.iter_mut().enumerate() {
+            let current_square = SquareCoord::try_from(square_idx as u8).unwrap();
+            *blocker_mask = self.get_blockers(current_square);
+        }
+        slider_blockers_masks
     }
-    slider_blockers_masks
 }
 
 pub fn get_all_blockers_subsets(blocker_mask: BitBoard) -> Vec<BitBoard> {
