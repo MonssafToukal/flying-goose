@@ -30,3 +30,8 @@ impl MagicEntry {
         }
     }
 }
+
+pub fn find_magic(slider: &Slider, square: SquareCoord) -> MagicEntry {
+   let blocker_mask = slider.get_blocker_mask(square);
+    todo!()
+}

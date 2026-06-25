@@ -29,7 +29,8 @@ impl Slider {
         });
         move_bitboard
     }
-    fn get_blocker_mask(&self, square: SquareCoord) -> BitBoard {
+
+    pub fn get_blocker_mask(&self, square: SquareCoord) -> BitBoard {
         let mut blockers_mask = EMPTY_BITBOARD;
         self.directions.iter().for_each(|direction| {
             let mut current_square = square;
@@ -52,30 +53,11 @@ impl Slider {
         }
         slider_blockers_masks
     }
-
-    pub fn find_magic_number(&self, square: SquareCoord) -> (MagicEntry, Vec<BitBoard>) {
-        // 1. For each blocker configuration, find the eligible rook moves bitboard associated to it.
-        let blocker_mask = self.get_blocker_mask(square);
-        loop {
-            let magic = MagicEntry::new(blocker_mask);
-            if let Ok(lookup_table) = build_lookup_table(self, &magic, square) {
-                return (magic, lookup_table);
-            }
-        }
-        todo!()
-    }
-}
-
-fn build_lookup_table(
-    slider: &Slider,
-    magic_entry: &MagicEntry,
-    square: SquareCoord,
-) -> Result<Vec<BitBoard>, ()> {
-    todo!()
 }
 
 pub fn get_all_blockers_subsets(blocker_mask: BitBoard) -> Vec<BitBoard> {
-    let mut subsets: Vec<BitBoard> = Vec::new();
+    // This is just to reduce the number of allocations
+    let mut subsets: Vec<BitBoard> = Vec::with_capacity(NumOf::SQUARES);
     subsets.push(EMPTY_BITBOARD);
     while let Some(current_subset) = subsets.last()
         && *current_subset != blocker_mask
@@ -84,4 +66,12 @@ pub fn get_all_blockers_subsets(blocker_mask: BitBoard) -> Vec<BitBoard> {
         subsets.push(next_subset);
     }
     subsets
+}
+
+fn build_lookup_table(
+    slider: &Slider,
+    magic_entry: &MagicEntry,
+    square: SquareCoord,
+) -> Result<Vec<BitBoard>, ()> {
+    todo!()
 }
