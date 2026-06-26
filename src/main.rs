@@ -7,29 +7,24 @@ pub mod types;
 use board::{
     Board,
     fen::FenError,
-    types::{Files, Ranks, Sides, SquareCoord},
+    types::{EMPTY_BITBOARD, Files, Ranks, Sides, SquareCoord},
 };
-use movement::sliders::{BISHOP_SLIDER, ROOK_SLIDER, Slider, get_all_blockers_subsets};
+use movement::{magic::{get_bishop_magics, get_rook_magics}, sliders::{BISHOP_SLIDER, ROOK_SLIDER, Slider, get_all_blockers_subsets}};
 use types::{BitBoard, print_bb};
 
 fn main() -> Result<(), FenError> {
-    let rook_blockers = ROOK_SLIDER.get_all_blockers();
-    let bishop_blockers = BISHOP_SLIDER.get_all_blockers();
-    let blockers = bishop_blockers;
-    let square = SquareCoord::try_from(0u8).unwrap();
+    let (rook_magics, rook_lookup_table) = get_rook_magics();
+    let (bishop_magics, bishop_lookup_table) = get_bishop_magics();
+    println!("{}", rook_magics[0]);
 
-    println!("blockers for square A1");
-    print_bb(blockers[0]);
+    let mut actual_number_of_elements: u64 = 0;
+    rook_lookup_table.iter().for_each(|eligible_moves| {
+        if *eligible_moves != EMPTY_BITBOARD {
+            actual_number_of_elements += 1;
+        }
+    });
+    print_bb(rook_lookup_table[0]);
+    println!("Actual number of elements in lookup table: {}", actual_number_of_elements);
 
-    let bitset: BitBoard = bishop_blockers[0];
-    let subsets = get_all_blockers_subsets(bitset);
-    let subset = subsets[34];
-
-    println!("blocker configuration subset:");
-    print_bb(subset);
-
-    let moves = BISHOP_SLIDER.get_moves(square, subset);
-    println!("eligible moves");
-    print_bb(moves);
     Ok(())
 }
