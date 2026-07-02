@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use crate::types::BitBoard;
 use crate::types::NumOf;
-use num_enum::{TryFromPrimitive};
+use num_enum::TryFromPrimitive;
 
 pub const EMPTY_BITBOARD: BitBoard = 0;
 

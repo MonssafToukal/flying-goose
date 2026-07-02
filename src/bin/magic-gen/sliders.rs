@@ -1,5 +1,5 @@
-use flying_goose::board::types::{Direction, EMPTY_BITBOARD, MAX_DIRECTIONS, SquareCoord};
 use crate::magic::MagicEntry;
+use flying_goose::board::types::{Direction, EMPTY_BITBOARD, MAX_DIRECTIONS, SquareCoord};
 use flying_goose::types::{BitBoard, NumOf, SQUARE_MASKS};
 
 pub struct Slider {
