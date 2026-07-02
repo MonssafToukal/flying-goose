@@ -1,5 +1,3 @@
-use crate::board::types::EMPTY_BITBOARD;
-
 pub type BitBoard = u64;
 pub fn print_bb(bitboard: BitBoard) -> () {
     const LAST_SQUARE_BIT: u64 = 63;

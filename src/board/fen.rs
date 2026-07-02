@@ -8,7 +8,7 @@ use crate::{
     },
     types::{NumOf, SQUARE_MASKS},
 };
-use std::{fmt::Display, iter::chain};
+use std::{fmt::Display};
 
 type FenParseFunc = fn(board: &mut Board, part: &str) -> Result<(), FenError>;
 
