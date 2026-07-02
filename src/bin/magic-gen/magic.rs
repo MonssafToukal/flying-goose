@@ -9,7 +9,7 @@ use rand_pcg::Pcg64;
 
 use super::sliders::{BISHOP_SLIDER, ROOK_SLIDER};
 
-const RANDOM_SEED : u64 = 42069;
+const RANDOM_SEED : u64 = 1290381293;
 const ROOK_TABLE_SIZE: usize = 102400;
 const BISHOP_TABLE_SIZE: usize = 5248;
 
@@ -107,7 +107,6 @@ fn find_magic(rng: &mut Pcg64,slider: &Slider, square: SquareCoord) -> (MagicEnt
     }
 }
 
-
 struct LookupTableCreationError;
 
 fn get_lookup_table(slider: &Slider, magic_entry: &MagicEntry, square: SquareCoord) -> Result<Vec<BitBoard>, LookupTableCreationError> {
@@ -125,7 +124,7 @@ fn get_lookup_table(slider: &Slider, magic_entry: &MagicEntry, square: SquareCoo
     Ok(lookup_table)
 }
 
-fn get_magic_index(magic_entry: &MagicEntry, occupancy: BitBoard) -> usize {
+pub fn get_magic_index(magic_entry: &MagicEntry, occupancy: BitBoard) -> usize {
     (magic_entry.number.wrapping_mul(occupancy) >> magic_entry.shift) as usize
 }
 
