@@ -171,39 +171,53 @@ mod tests {
 
     #[test]
     fn rook_magic_lookup_is_correct() {
-        let (entries, table) = get_rook_magics();
-        let mut start = 0usize;
-        for (sq_idx, entry) in entries.iter().enumerate() {
-            let sq = SquareCoord::try_from(sq_idx as u8).unwrap();
-            for blockers in get_all_blockers_subsets(entry.blocker_mask) {
-                let expected = ROOK_SLIDER.get_moves(sq, blockers);
-                let idx = get_magic_index(entry, blockers);
-                assert_eq!(
-                    table[start + idx],
-                    expected,
-                    "rook sq {sq_idx} blockers {blockers:#018x}"
-                );
-            }
-            start += entry.offset as usize;
-        }
+        std::thread::Builder::new()
+            .stack_size(16 * 1024 * 1024)
+            .spawn(|| {
+                let (entries, table) = get_rook_magics();
+                let mut start = 0usize;
+                for (sq_idx, entry) in entries.iter().enumerate() {
+                    let sq = SquareCoord::try_from(sq_idx as u8).unwrap();
+                    for blockers in get_all_blockers_subsets(entry.blocker_mask) {
+                        let expected = ROOK_SLIDER.get_moves(sq, blockers);
+                        let idx = get_magic_index(entry, blockers);
+                        assert_eq!(
+                            table[start + idx],
+                            expected,
+                            "rook sq {sq_idx} blockers {blockers:#018x}"
+                        );
+                    }
+                    start += entry.offset as usize;
+                }
+            })
+            .unwrap()
+            .join()
+            .unwrap();
     }
 
     #[test]
     fn bishop_magic_lookup_is_correct() {
-        let (entries, table) = get_bishop_magics();
-        let mut start = 0usize;
-        for (sq_idx, entry) in entries.iter().enumerate() {
-            let sq = SquareCoord::try_from(sq_idx as u8).unwrap();
-            for blockers in get_all_blockers_subsets(entry.blocker_mask) {
-                let expected = BISHOP_SLIDER.get_moves(sq, blockers);
-                let idx = get_magic_index(entry, blockers);
-                assert_eq!(
-                    table[start + idx],
-                    expected,
-                    "bishop sq {sq_idx} blockers {blockers:#018x}"
-                );
-            }
-            start += entry.offset as usize;
-        }
+        std::thread::Builder::new()
+            .stack_size(16 * 1024 * 1024)
+            .spawn(|| {
+                let (entries, table) = get_bishop_magics();
+                let mut start = 0usize;
+                for (sq_idx, entry) in entries.iter().enumerate() {
+                    let sq = SquareCoord::try_from(sq_idx as u8).unwrap();
+                    for blockers in get_all_blockers_subsets(entry.blocker_mask) {
+                        let expected = BISHOP_SLIDER.get_moves(sq, blockers);
+                        let idx = get_magic_index(entry, blockers);
+                        assert_eq!(
+                            table[start + idx],
+                            expected,
+                            "bishop sq {sq_idx} blockers {blockers:#018x}"
+                        );
+                    }
+                    start += entry.offset as usize;
+                }
+            })
+            .unwrap()
+            .join()
+            .unwrap();
     }
 }
