@@ -9,5 +9,4 @@ use magic::{get_bishop_magics, print_magics};
 fn main() {
     print_magics("rook");
     print_magics("bishop");
-
 }

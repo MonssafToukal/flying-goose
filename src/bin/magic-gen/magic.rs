@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
-use flying_goose::movement::sliders::{Slider, get_all_blockers_subsets};
 use flying_goose::board::types::{EMPTY_BITBOARD, SquareCoord};
+use flying_goose::movement::sliders::{Slider, get_all_blockers_subsets};
 use flying_goose::types::print_bb;
 use flying_goose::types::{BitBoard, NumOf};
 use rand::{Rng, SeedableRng};
