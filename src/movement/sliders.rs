@@ -1,6 +1,5 @@
-use crate::magic::MagicEntry;
-use flying_goose::board::types::{Direction, EMPTY_BITBOARD, MAX_DIRECTIONS, SquareCoord};
-use flying_goose::types::{BitBoard, NumOf, SQUARE_MASKS};
+use crate::board::types::{Direction, EMPTY_BITBOARD, MAX_DIRECTIONS, SquareCoord};
+use crate::types::{BitBoard, NumOf, SQUARE_MASKS};
 
 pub struct Slider {
     pub directions: [Direction; MAX_DIRECTIONS],
@@ -35,7 +34,7 @@ impl Slider {
         self.directions.iter().for_each(|direction| {
             let mut current_square = square;
             while let Ok(next_square) = current_square.next(*direction) {
-                if let Ok(next_next_square) = next_square.next(*direction) {
+                if let Ok(_next_next_square) = next_square.next(*direction) {
                     blockers_mask |= SQUARE_MASKS[next_square.to_usize()];
                 }
                 current_square = next_square;
@@ -66,12 +65,4 @@ pub fn get_all_blockers_subsets(blocker_mask: BitBoard) -> Vec<BitBoard> {
         subsets.push(next_subset);
     }
     subsets
-}
-
-fn build_lookup_table(
-    slider: &Slider,
-    magic_entry: &MagicEntry,
-    square: SquareCoord,
-) -> Result<Vec<BitBoard>, ()> {
-    todo!()
 }

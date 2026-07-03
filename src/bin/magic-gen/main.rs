@@ -1,6 +1,5 @@
 #![allow(warnings)]
 mod magic;
-mod sliders;
 
 use flying_goose::{board::types::EMPTY_BITBOARD, types::print_bb};
 

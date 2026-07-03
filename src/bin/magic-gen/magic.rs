@@ -1,13 +1,13 @@
 use std::fmt::Display;
 
-use crate::sliders::{Slider, get_all_blockers_subsets};
+use flying_goose::movement::sliders::{Slider, get_all_blockers_subsets};
 use flying_goose::board::types::{EMPTY_BITBOARD, SquareCoord};
 use flying_goose::types::print_bb;
 use flying_goose::types::{BitBoard, NumOf};
 use rand::{Rng, SeedableRng};
 use rand_pcg::Pcg64;
 
-use super::sliders::{BISHOP_SLIDER, ROOK_SLIDER};
+use flying_goose::movement::sliders::{BISHOP_SLIDER, ROOK_SLIDER};
 
 const RANDOM_SEED: u64 = 1290381293;
 const ROOK_TABLE_SIZE: usize = 102400;
@@ -167,7 +167,7 @@ pub fn print_magics(slider_name: &str) -> () {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::sliders::{BISHOP_SLIDER, ROOK_SLIDER, get_all_blockers_subsets};
+    use flying_goose::movement::sliders::{BISHOP_SLIDER, ROOK_SLIDER, get_all_blockers_subsets};
 
     #[test]
     fn rook_magic_lookup_is_correct() {

@@ -32,10 +32,9 @@ impl Board {
     fn init_bb_sides(&self) -> (BitBoard, BitBoard) {
         let mut white_side = EMPTY_BITBOARD;
         let mut black_side = EMPTY_BITBOARD;
-        for (piece_type, (wp, bp)) in self.bb_pieces[Sides::WHITE]
+        for (wp, bp) in self.bb_pieces[Sides::WHITE]
             .iter()
             .zip(self.bb_pieces[Sides::BLACK].iter())
-            .enumerate()
         {
             white_side |= *wp;
             black_side |= *bp;
