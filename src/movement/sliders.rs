@@ -1,6 +1,8 @@
 use crate::board::types::{Direction, EMPTY_BITBOARD, MAX_DIRECTIONS, SquareCoord};
 use crate::types::{BitBoard, NumOf, SQUARE_MASKS};
 
+pub const ROOK_TABLE_SIZE: usize = 102400;
+pub const BISHOP_TABLE_SIZE: usize = 5248;
 pub const ROOK_MAGICS: [u64; NumOf::SQUARES] = [
     36029381413453824,
     18023332042506432,
