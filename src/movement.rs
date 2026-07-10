@@ -1,5 +1,6 @@
 pub mod sliders;
-use sliders::{BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE};
+pub mod magics;
+use magics::{BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE};
 
 use crate::{board::types::EMPTY_BITBOARD, types::BitBoard};
 

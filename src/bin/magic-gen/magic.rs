@@ -108,11 +108,9 @@ fn find_magic(
     let mut attempts = 0u64;
     let blocker_mask = slider.get_blocker_mask(square);
     loop {
-        attempts += 1;
         let square_idx = square.to_usize();
         let mut magic = MagicEntry::new(rng, blocker_mask);
         if let Ok(lookup_table) = get_lookup_table(&slider, &magic, square) {
-            // println!("Square {square_idx}: found in {attempts} attempts");
             return (magic, lookup_table);
         }
     }
