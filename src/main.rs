@@ -1,8 +1,7 @@
 #![allow(warnings)]
 pub mod board;
-pub mod types;
 pub mod movement;
-
+pub mod types;
 
 use board::{
     Board,

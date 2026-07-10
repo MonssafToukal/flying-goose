@@ -21,6 +21,9 @@ pub fn print_bb(bitboard: BitBoard) -> () {
 pub struct NumOf;
 impl NumOf {
     pub const SQUARES: usize = 64;
+    pub const CORNER_SQUARES: usize = 4;
+    pub const EDGE_SQUARES: usize = 24;
+    pub const INTERIOR_SQUARES: usize = 36;
     pub const PIECES_PER_SIDE: usize = 16;
     pub const PIECE_TYPES: usize = 6;
     pub const CASTLING_STATES: usize = 16;

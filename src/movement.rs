@@ -1,5 +1,5 @@
-pub mod sliders;
 pub mod magics;
+pub mod sliders;
 use magics::{BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE};
 
 use crate::{board::types::EMPTY_BITBOARD, types::BitBoard};
@@ -16,5 +16,4 @@ impl MovementData {
             bishop_lut: vec![EMPTY_BITBOARD; BISHOP_TABLE_SIZE],
         }
     }
-
 }

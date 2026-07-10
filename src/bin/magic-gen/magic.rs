@@ -1,6 +1,7 @@
 use std::fmt::Display;
+use std::sync::OnceLock;
 
-use flying_goose::board::types::{EMPTY_BITBOARD, SquareCoord};
+use flying_goose::board::types::{Direction, EMPTY_BITBOARD, Files, Ranks, Square, SquareCoord};
 use flying_goose::movement::sliders::{Slider, get_all_blockers_subsets};
 use flying_goose::types::print_bb;
 use flying_goose::types::{BitBoard, NumOf};
@@ -13,13 +14,57 @@ const RANDOM_SEED: u64 = 1290381293;
 const ROOK_TABLE_SIZE: usize = 102400;
 const BISHOP_TABLE_SIZE: usize = 5248;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+// Constants for squares
+type CornerVec = Vec<Square>;
+type EdgeVec = Vec<Square>;
+type InteriorVec = Vec<Square>;
+type CornerArray = [Square; NumOf::CORNER_SQUARES];
+type EdgeArray = [Square; NumOf::EDGE_SQUARES];
+type InteriorArray = [Square; NumOf::INTERIOR_SQUARES];
+
+// const ALL_SQUARE_ARRAYS: (CornerArray, EdgeArray, InteriorArray) = init_square_lists();
+// static CORNER_SQUARES: CornerArray = [0; NumOf::CORNER_SQUARES];
+// static EDGE_SQUARES: EdgeArray = [0; NumOf::EDGE_SQUARES];
+// static INTERIOR_SQUARES: InteriorArray = [0; NumOf::INTERIOR_SQUARES];
+//
+
+#[derive(Debug)]
+struct InitSquareArrError;
+
+fn init_square_lists() -> Result<(CornerArray, EdgeArray, InteriorArray), InitSquareArrError> {
+    let mut corner_squares = Vec::with_capacity(NumOf::CORNER_SQUARES);
+    let mut edge_squares = Vec::with_capacity(NumOf::EDGE_SQUARES);
+    let mut interior_squares = Vec::with_capacity(NumOf::INTERIOR_SQUARES);
+    let directions: [Direction; 4] = [(0, 1), (0, -1), (1, 0), (-1, 1)];
+    for square_idx in 0..NumOf::SQUARES {
+        let square: SquareCoord = SquareCoord::try_from(square_idx as u8).unwrap();
+        let num_valid_directions = directions
+            .iter()
+            .filter(|&&x| square.next(x).is_ok())
+            .count();
+        match num_valid_directions {
+            4 => interior_squares.push(square_idx),
+            3 => edge_squares.push(square_idx),
+            2 => corner_squares.push(square_idx),
+            _ => return Err(InitSquareArrError),
+        };
+    }
+    let corner_squares: CornerArray = corner_squares.try_into().map_err(|_| InitSquareArrError)?;
+    let edge_squares: EdgeArray = edge_squares.try_into().map_err(|_| InitSquareArrError)?;
+    let interior_squares: InteriorArray = interior_squares
+        .try_into()
+        .map_err(|_| InitSquareArrError)?;
+
+    Ok((corner_squares, edge_squares, interior_squares))
+}
+
+#[derive(Debug, Clone, Copy)]
 pub struct MagicEntry {
     pub number: u64,
-    blocker_mask: BitBoard,
-    offset: u32,
-    index_bits: u8,
-    shift: u8,
+    pub blocker_mask: BitBoard,
+    pub offset: u32,
+    pub index_bits: u8,
+    pub shift: u8,
 }
 
 impl Display for MagicEntry {
@@ -47,68 +92,71 @@ impl MagicEntry {
         Self {
             number: magic_number,
             blocker_mask: blocker_mask,
-            offset: 1 << number_of_bits_set,
+            offset: 0,
             index_bits: number_of_bits_set,
             shift: num_squares - number_of_bits_set,
         }
     }
 }
 
-pub fn get_rook_magics() -> ([MagicEntry; NumOf::SQUARES], [BitBoard; ROOK_TABLE_SIZE]) {
+pub fn get_slider_magics(slider: &Slider) -> (Vec<MagicEntry>, Vec<BitBoard>) {
     let mut rng = Pcg64::seed_from_u64(RANDOM_SEED);
-    let mut lookup_table: [BitBoard; ROOK_TABLE_SIZE] = [EMPTY_BITBOARD; ROOK_TABLE_SIZE];
-    let mut magic_entries: [Option<MagicEntry>; NumOf::SQUARES] = [None; NumOf::SQUARES];
-    let mut current_offset = 0u64;
-    for square_idx in 0..NumOf::SQUARES {
-        let square = SquareCoord::try_from(square_idx as u8).unwrap();
-        let (magic_entry, table) = find_magic(&mut rng, &ROOK_SLIDER, square);
-        magic_entries[square_idx] = Some(magic_entry);
-        for (i, table_entry) in table.iter().enumerate() {
-            lookup_table[i + current_offset as usize] = *table_entry;
-        }
-        current_offset += magic_entry.offset as u64;
-    }
-    let magic_entries: [MagicEntry; NumOf::SQUARES] = magic_entries
-        .into_iter()
-        .collect::<Option<Vec<MagicEntry>>>()
-        .and_then(|v| v.try_into().ok())
-        .unwrap();
+    let mut global_table = vec![EMPTY_BITBOARD; ROOK_TABLE_SIZE];
+    let mut magic_entries: Vec<MagicEntry> = Vec::with_capacity(NumOf::SQUARES);
+    let (corner_squares, edge_squares, interior_squares) =
+        init_square_lists().expect("could not get square arrays");
+    // Ordering squares by the size of the lookup table in decreasing order
+    let ordered_squares_by_bitset: Vec<Square> = [
+        corner_squares.as_slice(),
+        edge_squares.as_slice(),
+        interior_squares.as_slice(),
+    ]
+    .concat();
 
-    (magic_entries, lookup_table)
+    for square_idx in ordered_squares_by_bitset {
+        'find_magic: loop {
+            let (mut magic_entry, table) = find_magic(&mut rng, slider, square_idx);
+            let max_table_size = 1 << magic_entry.index_bits;
+            let mut found_offset = false;
+            'find_offset: for offset in 0..global_table.len() - max_table_size as usize {
+                for (i, &table_entry) in table.iter().enumerate() {
+                    if table_entry == EMPTY_BITBOARD {
+                        continue;
+                    }
+                    let global_table_entry = global_table[i + offset];
+                    if global_table_entry != EMPTY_BITBOARD && global_table_entry != table_entry {
+                        continue 'find_offset;
+                    }
+                }
+                for (i, &table_entry) in table.iter().enumerate() {
+                    if table_entry != EMPTY_BITBOARD {
+                        global_table[i + offset] = table_entry;
+                    }
+                }
+                found_offset = true;
+                magic_entry.offset = offset as u32;
+                magic_entries.push(magic_entry);
+                break 'find_offset;
+            }
+            if found_offset {
+                break 'find_magic;
+            }
+        }
+    }
+    // Truncate the global_table at the end:
+    let last_nonzero_attack = global_table
+        .iter()
+        .rposition(|&x| x != 0)
+        .expect("global table for slider is full of zeros which is nonsensical. Crashing");
+    global_table.truncate(last_nonzero_attack + 1);
+
+    (magic_entries, global_table)
 }
 
-pub fn get_bishop_magics() -> ([MagicEntry; NumOf::SQUARES], [BitBoard; BISHOP_TABLE_SIZE]) {
-    let mut rng = Pcg64::seed_from_u64(RANDOM_SEED);
-    let mut lookup_table: [BitBoard; BISHOP_TABLE_SIZE] = [EMPTY_BITBOARD; BISHOP_TABLE_SIZE];
-    let mut magic_entries: [Option<MagicEntry>; NumOf::SQUARES] = [None; NumOf::SQUARES];
-    let mut current_offset = 0u64;
-    for square_idx in 0..NumOf::SQUARES {
-        let square = SquareCoord::try_from(square_idx as u8).unwrap();
-        let (magic_entry, table) = find_magic(&mut rng, &BISHOP_SLIDER, square);
-        magic_entries[square_idx] = Some(magic_entry);
-        for (i, table_entry) in table.iter().enumerate() {
-            lookup_table[i + current_offset as usize] = *table_entry;
-        }
-        current_offset += magic_entry.offset as u64;
-    }
-    let magic_entries: [MagicEntry; NumOf::SQUARES] = magic_entries
-        .into_iter()
-        .collect::<Option<Vec<MagicEntry>>>()
-        .and_then(|v| v.try_into().ok())
-        .unwrap();
-
-    (magic_entries, lookup_table)
-}
-
-fn find_magic(
-    rng: &mut Pcg64,
-    slider: &Slider,
-    square: SquareCoord,
-) -> (MagicEntry, Vec<BitBoard>) {
-    let mut attempts = 0u64;
-    let blocker_mask = slider.get_blocker_mask(square);
+fn find_magic(rng: &mut Pcg64, slider: &Slider, square: Square) -> (MagicEntry, Vec<BitBoard>) {
+    let square_coord: SquareCoord = SquareCoord::try_from(square as u8).unwrap();
+    let blocker_mask = slider.get_blocker_mask(square_coord);
     loop {
-        let square_idx = square.to_usize();
         let mut magic = MagicEntry::new(rng, blocker_mask);
         if let Ok(lookup_table) = get_lookup_table(&slider, &magic, square) {
             return (magic, lookup_table);
@@ -121,9 +169,10 @@ struct LookupTableCreationError;
 fn get_lookup_table(
     slider: &Slider,
     magic_entry: &MagicEntry,
-    square: SquareCoord,
+    square: Square,
 ) -> Result<Vec<BitBoard>, LookupTableCreationError> {
-    let mut lookup_table = vec![EMPTY_BITBOARD; 1 << magic_entry.index_bits];
+    let mut lookup_table = vec![EMPTY_BITBOARD; (1usize << magic_entry.index_bits)];
+    let square = SquareCoord::try_from(square as u8).unwrap();
     for blocker_subset in get_all_blockers_subsets(magic_entry.blocker_mask) {
         let eligible_moves = slider.get_moves(square, blocker_subset);
         let index = get_magic_index(&magic_entry, blocker_subset);
@@ -141,24 +190,13 @@ pub fn get_magic_index(magic_entry: &MagicEntry, occupancy: BitBoard) -> usize {
     (magic_entry.number.wrapping_mul(occupancy) >> magic_entry.shift) as usize
 }
 
-pub fn print_magics(slider_name: &str) -> () {
+pub fn print_magics(slider: &Slider, slider_name: &str) -> () {
     let slider_name = slider_name.to_uppercase();
-    if slider_name == "ROOK" {
-        let (magics, _) = get_rook_magics();
-        println!("pub const {slider_name}:[u64;NumOf::SQUARES] = [");
-        if let Some((last_magic, rest)) = magics.split_last() {
-            rest.into_iter().for_each(|m| println!("{},", m.number));
-            println!("{}];", last_magic.number);
-        }
-    } else if slider_name == "BISHOP" {
-        let (magics, _) = get_bishop_magics();
-        println!("pub const {slider_name}:[u64;NumOf::SQUARES] = [");
-        if let Some((last_magic, rest)) = magics.split_last() {
-            rest.into_iter().for_each(|m| println!("{},", m.number));
-            println!("{}];", last_magic.number);
-        }
-    } else {
-        ()
+    let (magics, _) = get_slider_magics(&ROOK_SLIDER);
+    // println!("pub const {slider_name}:[u64;NumOf::SQUARES] = [");
+    if let Some((last_magic, rest)) = magics.split_last() {
+        rest.into_iter().for_each(|m| println!("{},", m.number));
+        println!("{}];", last_magic.number);
     }
 }
 
@@ -172,7 +210,7 @@ mod tests {
         std::thread::Builder::new()
             .stack_size(16 * 1024 * 1024)
             .spawn(|| {
-                let (entries, table) = get_rook_magics();
+                let (entries, table) = get_slider_magics(&ROOK_SLIDER);
                 let mut start = 0usize;
                 for (sq_idx, entry) in entries.iter().enumerate() {
                     let sq = SquareCoord::try_from(sq_idx as u8).unwrap();
@@ -198,7 +236,7 @@ mod tests {
         std::thread::Builder::new()
             .stack_size(16 * 1024 * 1024)
             .spawn(|| {
-                let (entries, table) = get_bishop_magics();
+                let (entries, table) = get_slider_magics(&BISHOP_SLIDER);
                 let mut start = 0usize;
                 for (sq_idx, entry) in entries.iter().enumerate() {
                     let sq = SquareCoord::try_from(sq_idx as u8).unwrap();
