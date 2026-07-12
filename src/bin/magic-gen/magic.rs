@@ -35,13 +35,14 @@ fn init_square_lists() -> Result<(CornerArray, EdgeArray, InteriorArray), InitSq
     let mut corner_squares = Vec::with_capacity(NumOf::CORNER_SQUARES);
     let mut edge_squares = Vec::with_capacity(NumOf::EDGE_SQUARES);
     let mut interior_squares = Vec::with_capacity(NumOf::INTERIOR_SQUARES);
-    let directions: [Direction; 4] = [(0, 1), (0, -1), (1, 0), (-1, 1)];
+    let directions: [Direction; 4] = [(0, 1), (0, -1), (1, 0), (-1, 0)];
     for square_idx in 0..NumOf::SQUARES {
         let square: SquareCoord = SquareCoord::try_from(square_idx as u8).unwrap();
         let num_valid_directions = directions
             .iter()
             .filter(|&&x| square.next(x).is_ok())
             .count();
+        // println!("square: {} => {num_valid_directions} valid directions", square_idx);
         match num_valid_directions {
             4 => interior_squares.push(square_idx),
             3 => edge_squares.push(square_idx),
@@ -58,7 +59,7 @@ fn init_square_lists() -> Result<(CornerArray, EdgeArray, InteriorArray), InitSq
     Ok((corner_squares, edge_squares, interior_squares))
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct MagicEntry {
     pub number: u64,
     pub blocker_mask: BitBoard,
@@ -74,6 +75,12 @@ impl Display for MagicEntry {
             "Magic number: {} offset: {} index_bits: {} shift: {}",
             self.number, self.offset, self.index_bits, self.shift
         )
+    }
+}
+
+impl Default for MagicEntry {
+    fn default() -> Self {
+        MagicEntry { number: 0, blocker_mask: EMPTY_BITBOARD, offset: NumOf::SQUARES as u32, index_bits: 0, shift: NumOf::SQUARES as u8 }
     }
 }
 
@@ -102,7 +109,8 @@ impl MagicEntry {
 pub fn get_slider_magics(slider: &Slider) -> (Vec<MagicEntry>, Vec<BitBoard>) {
     let mut rng = Pcg64::seed_from_u64(RANDOM_SEED);
     let mut global_table = vec![EMPTY_BITBOARD; ROOK_TABLE_SIZE];
-    let mut magic_entries: Vec<MagicEntry> = Vec::with_capacity(NumOf::SQUARES);
+
+    let mut magic_entries: Vec<MagicEntry> = vec![MagicEntry::default(); NumOf::SQUARES];
     let (corner_squares, edge_squares, interior_squares) =
         init_square_lists().expect("could not get square arrays");
     // Ordering squares by the size of the lookup table in decreasing order
@@ -135,7 +143,7 @@ pub fn get_slider_magics(slider: &Slider) -> (Vec<MagicEntry>, Vec<BitBoard>) {
                 }
                 found_offset = true;
                 magic_entry.offset = offset as u32;
-                magic_entries.push(magic_entry);
+                magic_entries[square_idx] = magic_entry;
                 break 'find_offset;
             }
             if found_offset {
@@ -211,19 +219,17 @@ mod tests {
             .stack_size(16 * 1024 * 1024)
             .spawn(|| {
                 let (entries, table) = get_slider_magics(&ROOK_SLIDER);
-                let mut start = 0usize;
                 for (sq_idx, entry) in entries.iter().enumerate() {
                     let sq = SquareCoord::try_from(sq_idx as u8).unwrap();
                     for blockers in get_all_blockers_subsets(entry.blocker_mask) {
                         let expected = ROOK_SLIDER.get_moves(sq, blockers);
                         let idx = get_magic_index(entry, blockers);
                         assert_eq!(
-                            table[start + idx],
+                            table[entry.offset as usize + idx],
                             expected,
                             "rook sq {sq_idx} blockers {blockers:#018x}"
                         );
                     }
-                    start += entry.offset as usize;
                 }
             })
             .unwrap()
@@ -237,19 +243,17 @@ mod tests {
             .stack_size(16 * 1024 * 1024)
             .spawn(|| {
                 let (entries, table) = get_slider_magics(&BISHOP_SLIDER);
-                let mut start = 0usize;
                 for (sq_idx, entry) in entries.iter().enumerate() {
                     let sq = SquareCoord::try_from(sq_idx as u8).unwrap();
                     for blockers in get_all_blockers_subsets(entry.blocker_mask) {
                         let expected = BISHOP_SLIDER.get_moves(sq, blockers);
                         let idx = get_magic_index(entry, blockers);
                         assert_eq!(
-                            table[start + idx],
+                            table[entry.offset as usize + idx],
                             expected,
                             "bishop sq {sq_idx} blockers {blockers:#018x}"
                         );
                     }
-                    start += entry.offset as usize;
                 }
             })
             .unwrap()
