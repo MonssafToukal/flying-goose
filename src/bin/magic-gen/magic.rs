@@ -122,11 +122,20 @@ pub fn get_slider_magics(slider: &Slider) -> (Vec<MagicEntry>, Vec<BitBoard>) {
     .concat();
 
     for square_idx in ordered_squares_by_bitset {
+        let mut attempts: u64 = 0;
         'find_magic: loop {
+            attempts += 1;
+            if attempts % 100_000 == 0 {
+                let filled = global_table.iter().filter(|&&x| x != EMPTY_BITBOARD).count();
+                eprintln!(
+                    "  ...still searching for square {square_idx}: {attempts} magic attempts so far, global_table {:.1}% full",
+                    100.0 * filled as f64 / global_table.len() as f64
+                );
+            }
             let (mut magic_entry, table) = find_magic(&mut rng, slider, square_idx);
             let max_table_size = 1 << magic_entry.index_bits;
             let mut found_offset = false;
-            'find_offset: for offset in 0..global_table.len() - max_table_size as usize {
+            'find_offset: for offset in 0..=global_table.len() - max_table_size as usize {
                 for (i, &table_entry) in table.iter().enumerate() {
                     if table_entry == EMPTY_BITBOARD {
                         continue;
@@ -147,6 +156,10 @@ pub fn get_slider_magics(slider: &Slider) -> (Vec<MagicEntry>, Vec<BitBoard>) {
                 break 'find_offset;
             }
             if found_offset {
+                println!(
+                    "square {square_idx:>2}: bits={} offset={} ({attempts} attempts)",
+                    magic_entry.index_bits, magic_entry.offset
+                );
                 break 'find_magic;
             }
         }

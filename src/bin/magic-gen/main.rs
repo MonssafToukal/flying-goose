@@ -11,7 +11,13 @@ use crate::magic::get_slider_magics;
 use magic::print_magics;
 
 fn main() {
+    println!("Generating rook magics...");
+    let start = std::time::Instant::now();
     let (magic_entries, rook_global_table) = get_slider_magics(&ROOK_SLIDER);
     let size_kb = (rook_global_table.len() * std::mem::size_of::<BitBoard>()) as f64 / 1024.0;
-    println!("Rook global table size: {:.2} Kb", size_kb);
+    println!(
+        "Rook global table size: {:.2} Kb (generated in {:.2?})",
+        size_kb,
+        start.elapsed()
+    );
 }
