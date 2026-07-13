@@ -1,7 +1,9 @@
 use std::fmt::Display;
 use std::sync::OnceLock;
 
-use flying_goose::board::types::{Direction, EMPTY_BITBOARD, FULL_BITBOARD, Files, Ranks, Square, SquareCoord};
+use flying_goose::board::types::{
+    Direction, EMPTY_BITBOARD, FULL_BITBOARD, Files, Ranks, Square, SquareCoord,
+};
 use flying_goose::movement::sliders::{Slider, get_all_blockers_subsets};
 use flying_goose::types::print_bb;
 use flying_goose::types::{BitBoard, NumOf};
@@ -81,7 +83,14 @@ impl Display for MagicEntry {
 
 impl Default for MagicEntry {
     fn default() -> Self {
-        MagicEntry { number: 0, blocker_mask: EMPTY_BITBOARD, inverse_blocker_mask: FULL_BITBOARD, offset: NumOf::SQUARES as u32, index_bits: 0, shift: NumOf::SQUARES as u8 }
+        MagicEntry {
+            number: 0,
+            blocker_mask: EMPTY_BITBOARD,
+            inverse_blocker_mask: FULL_BITBOARD,
+            offset: NumOf::SQUARES as u32,
+            index_bits: 0,
+            shift: NumOf::SQUARES as u8,
+        }
     }
 }
 
@@ -124,20 +133,23 @@ pub fn get_slider_magics(slider: &Slider) -> (Vec<MagicEntry>, Vec<BitBoard>) {
     .concat();
 
     for square_idx in ordered_squares_by_bitset {
-        let mut attempts: u64 = 0;
+        let mut attempts: u32 = 0;
+        const MAX_ATTEMPTS_PER_SQUARE: u32 = 100000;
         'find_magic: loop {
             attempts += 1;
-            if attempts % 100_000 == 0 {
-                let filled = global_table.iter().filter(|&&x| x != EMPTY_BITBOARD).count();
+            if attempts % MAX_ATTEMPTS_PER_SQUARE == 0 {
+                let filled = global_table
+                    .iter()
+                    .filter(|&&x| x != EMPTY_BITBOARD)
+                    .count();
                 eprintln!(
                     "  ...still searching for square {square_idx}: {attempts} magic attempts so far, global_table {:.1}% full",
                     100.0 * filled as f64 / global_table.len() as f64
                 );
             }
             let (mut magic_entry, table) = find_magic(&mut rng, slider, square_idx);
-            let max_table_size = 1 << magic_entry.index_bits;
             let mut found_offset = false;
-            'find_offset: for offset in 0..=global_table.len() - max_table_size as usize {
+            'find_offset: for offset in 0..=global_table.len() - table.len() {
                 for (i, &table_entry) in table.iter().enumerate() {
                     if table_entry == EMPTY_BITBOARD {
                         continue;
@@ -169,7 +181,7 @@ pub fn get_slider_magics(slider: &Slider) -> (Vec<MagicEntry>, Vec<BitBoard>) {
     // Truncate the global_table at the end:
     let last_nonzero_attack = global_table
         .iter()
-        .rposition(|&x| x != 0)
+        .rposition(|&x| x != EMPTY_BITBOARD)
         .expect("global table for slider is full of zeros which is nonsensical. Crashing");
     global_table.truncate(last_nonzero_attack + 1);
 
@@ -206,11 +218,15 @@ fn get_lookup_table(
             return Err(LookupTableCreationError);
         }
     }
+    let last_slider_attack_idx = lookup_table.iter().rposition(|&bb| bb != EMPTY_BITBOARD).expect("local table cannot have all nonzero values");
+    lookup_table.truncate(last_slider_attack_idx + 1);
+
     Ok(lookup_table)
 }
 
 pub fn get_magic_index(magic_entry: &MagicEntry, occupancy: BitBoard) -> usize {
-    ((occupancy | magic_entry.inverse_blocker_mask).wrapping_mul(magic_entry.number) >> magic_entry.shift) as usize
+    ((occupancy | magic_entry.inverse_blocker_mask).wrapping_mul(magic_entry.number)
+        >> magic_entry.shift) as usize
 }
 
 pub fn print_magics(slider: &Slider, slider_name: &str) -> () {
