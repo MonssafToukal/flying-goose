@@ -62,7 +62,7 @@ fn init_square_lists() -> Result<(CornerArray, EdgeArray, InteriorArray), InitSq
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct MagicEntry {
     pub number: u64,
-    pub blocker_mask: BitBoard,
+    pub inverse_blocker_mask: BitBoard,
     pub offset: u32,
     pub index_bits: u8,
     pub shift: u8,
@@ -80,7 +80,7 @@ impl Display for MagicEntry {
 
 impl Default for MagicEntry {
     fn default() -> Self {
-        MagicEntry { number: 0, blocker_mask: EMPTY_BITBOARD, offset: NumOf::SQUARES as u32, index_bits: 0, shift: NumOf::SQUARES as u8 }
+        MagicEntry { number: 0, inverse_blocker_mask: EMPTY_BITBOARD, offset: NumOf::SQUARES as u32, index_bits: 0, shift: NumOf::SQUARES as u8 }
     }
 }
 
@@ -98,7 +98,7 @@ impl MagicEntry {
         let num_squares: u8 = u8::try_from(NumOf::SQUARES).unwrap();
         Self {
             number: magic_number,
-            blocker_mask: blocker_mask,
+            inverse_blocker_mask: !blocker_mask,
             offset: 0,
             index_bits: number_of_bits_set,
             shift: num_squares - number_of_bits_set,
@@ -194,7 +194,7 @@ fn get_lookup_table(
 ) -> Result<Vec<BitBoard>, LookupTableCreationError> {
     let mut lookup_table = vec![EMPTY_BITBOARD; (1usize << magic_entry.index_bits)];
     let square = SquareCoord::try_from(square as u8).unwrap();
-    for blocker_subset in get_all_blockers_subsets(magic_entry.blocker_mask) {
+    for blocker_subset in get_all_blockers_subsets(magic_entry.inverse_blocker_mask) {
         let eligible_moves = slider.get_moves(square, blocker_subset);
         let index = get_magic_index(&magic_entry, blocker_subset);
         let table_entry = &mut lookup_table[index];
@@ -208,7 +208,7 @@ fn get_lookup_table(
 }
 
 pub fn get_magic_index(magic_entry: &MagicEntry, occupancy: BitBoard) -> usize {
-    (magic_entry.number.wrapping_mul(occupancy) >> magic_entry.shift) as usize
+    ((occupancy | magic_entry.inverse_blocker_mask).wrapping_mul(magic_entry.number) >> magic_entry.shift) as usize
 }
 
 pub fn print_magics(slider: &Slider, slider_name: &str) -> () {
@@ -234,7 +234,7 @@ mod tests {
                 let (entries, table) = get_slider_magics(&ROOK_SLIDER);
                 for (sq_idx, entry) in entries.iter().enumerate() {
                     let sq = SquareCoord::try_from(sq_idx as u8).unwrap();
-                    for blockers in get_all_blockers_subsets(entry.blocker_mask) {
+                    for blockers in get_all_blockers_subsets(entry.inverse_blocker_mask) {
                         let expected = ROOK_SLIDER.get_moves(sq, blockers);
                         let idx = get_magic_index(entry, blockers);
                         assert_eq!(
@@ -258,7 +258,7 @@ mod tests {
                 let (entries, table) = get_slider_magics(&BISHOP_SLIDER);
                 for (sq_idx, entry) in entries.iter().enumerate() {
                     let sq = SquareCoord::try_from(sq_idx as u8).unwrap();
-                    for blockers in get_all_blockers_subsets(entry.blocker_mask) {
+                    for blockers in get_all_blockers_subsets(entry.inverse_blocker_mask) {
                         let expected = BISHOP_SLIDER.get_moves(sq, blockers);
                         let idx = get_magic_index(entry, blockers);
                         assert_eq!(
