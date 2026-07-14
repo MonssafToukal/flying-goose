@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::fmt::Display;
 use std::sync::OnceLock;
 
@@ -23,12 +24,6 @@ type InteriorVec = Vec<Square>;
 type CornerArray = [Square; NumOf::CORNER_SQUARES];
 type EdgeArray = [Square; NumOf::EDGE_SQUARES];
 type InteriorArray = [Square; NumOf::INTERIOR_SQUARES];
-
-// const ALL_SQUARE_ARRAYS: (CornerArray, EdgeArray, InteriorArray) = init_square_lists();
-// static CORNER_SQUARES: CornerArray = [0; NumOf::CORNER_SQUARES];
-// static EDGE_SQUARES: EdgeArray = [0; NumOf::EDGE_SQUARES];
-// static INTERIOR_SQUARES: InteriorArray = [0; NumOf::INTERIOR_SQUARES];
-//
 
 #[derive(Debug)]
 struct InitSquareArrError;
@@ -119,6 +114,9 @@ impl MagicEntry {
 
 pub fn get_slider_magics(slider: &Slider) -> (Vec<MagicEntry>, Vec<BitBoard>) {
     let mut rng = Pcg64::seed_from_u64(RANDOM_SEED);
+    // Sized to the classical no-sharing total: every square placed back-to-back with
+    // zero overlap always fits, so this is a safe hard upper bound no matter how the
+    // search below goes.
     let mut global_table = vec![EMPTY_BITBOARD; ROOK_TABLE_SIZE];
 
     let mut magic_entries: Vec<MagicEntry> = vec![MagicEntry::default(); NumOf::SQUARES];
@@ -133,52 +131,39 @@ pub fn get_slider_magics(slider: &Slider) -> (Vec<MagicEntry>, Vec<BitBoard>) {
     .concat();
 
     for square_idx in ordered_squares_by_bitset {
-        let mut attempts: u32 = 0;
-        const MAX_ATTEMPTS_PER_SQUARE: u32 = 100000;
-        'find_magic: loop {
-            attempts += 1;
-            if attempts % MAX_ATTEMPTS_PER_SQUARE == 0 {
-                let filled = global_table
-                    .iter()
-                    .filter(|&&x| x != EMPTY_BITBOARD)
-                    .count();
-                eprintln!(
-                    "  ...still searching for square {square_idx}: {attempts} magic attempts so far, global_table {:.1}% full",
-                    100.0 * filled as f64 / global_table.len() as f64
-                );
-            }
-            let (mut magic_entry, table) = find_magic(&mut rng, slider, square_idx);
-            let mut found_offset = false;
-            'find_offset: for offset in 0..=global_table.len() - table.len() {
-                for (i, &table_entry) in table.iter().enumerate() {
-                    if table_entry == EMPTY_BITBOARD {
-                        continue;
+        let (mut magic_entry, table, attempts) = find_magic(&mut rng, slider, square_idx);
+        let fill = table.iter().filter(|&&bb| bb != EMPTY_BITBOARD).count();
+
+        let offset = (0..=global_table.len() - table.len())
+            .find(|&candidate| {
+                table.iter().enumerate().all(|(i, &table_entry)| {
+                    table_entry == EMPTY_BITBOARD || {
+                        let existing = global_table[i + candidate];
+                        existing == EMPTY_BITBOARD || existing == table_entry
                     }
-                    let global_table_entry = global_table[i + offset];
-                    if global_table_entry != EMPTY_BITBOARD && global_table_entry != table_entry {
-                        continue 'find_offset;
-                    }
-                }
-                for (i, &table_entry) in table.iter().enumerate() {
-                    if table_entry != EMPTY_BITBOARD {
-                        global_table[i + offset] = table_entry;
-                    }
-                }
-                found_offset = true;
-                magic_entry.offset = offset as u32;
-                magic_entries[square_idx] = magic_entry;
-                break 'find_offset;
-            }
-            if found_offset {
-                println!(
-                    "square {square_idx:>2}: bits={} offset={} ({attempts} attempts)",
-                    magic_entry.index_bits, magic_entry.offset
-                );
-                break 'find_magic;
+                })
+            })
+            .expect(
+                "global_table is sized to the classical no-sharing total, so placing every square back-to-back with zero overlap is always a valid fallback",
+            );
+
+        for (i, &table_entry) in table.iter().enumerate() {
+            if table_entry != EMPTY_BITBOARD {
+                global_table[i + offset] = table_entry;
             }
         }
+        magic_entry.offset = offset as u32;
+
+        println!(
+            "square {square_idx:>2}: bits={} offset={} table_len={} fill={:.1}% ({attempts} attempts)",
+            magic_entry.index_bits,
+            offset,
+            table.len(),
+            100.0 * fill as f64 / table.len() as f64
+        );
+        magic_entries[square_idx] = magic_entry;
     }
-    // Truncate the global_table at the end:
+
     let last_nonzero_attack = global_table
         .iter()
         .rposition(|&x| x != EMPTY_BITBOARD)
@@ -188,13 +173,72 @@ pub fn get_slider_magics(slider: &Slider) -> (Vec<MagicEntry>, Vec<BitBoard>) {
     (magic_entries, global_table)
 }
 
-fn find_magic(rng: &mut Pcg64, slider: &Slider, square: Square) -> (MagicEntry, Vec<BitBoard>) {
+/// Draws candidate magics until one is collision-safe, then keeps searching for one that
+/// maximizes constructive collisions instead of avoiding them: the fewer distinct slots
+/// a square's table actually touches, the more empty slots are left for other squares to
+/// overlap into in the shared global table. `distinct_values` (the number of genuinely
+/// different attack bitboards this square can produce) is the theoretical floor on how
+/// low the fill count can possibly go, so we stop early if we ever hit it exactly.
+///
+/// Two independent, finite bounds guarantee this always terminates: it gives up after
+/// `MAX_ATTEMPTS_WITHOUT_IMPROVEMENT` consecutive attempts with no improvement, or after
+/// `MAX_TOTAL_ATTEMPTS` attempts total, whichever comes first — so a square that keeps
+/// finding rare, tiny improvements forever can't turn this into an unbounded search.
+fn find_magic(rng: &mut Pcg64, slider: &Slider, square: Square) -> (MagicEntry, Vec<BitBoard>, u32) {
+    const MAX_ATTEMPTS_WITHOUT_IMPROVEMENT: u32 = 100_000;
+    const MAX_TOTAL_ATTEMPTS: u32 = 5_000_000;
+    const PROGRESS_INTERVAL: u32 = 50_000;
+
     let square_coord: SquareCoord = SquareCoord::try_from(square as u8).unwrap();
     let blocker_mask = slider.get_blocker_mask(square_coord);
+    let distinct_values: usize = get_all_blockers_subsets(blocker_mask)
+        .into_iter()
+        .map(|subset| slider.get_moves(square_coord, subset))
+        .collect::<HashSet<_>>()
+        .len();
+
+    let mut best: Option<(MagicEntry, Vec<BitBoard>, usize)> = None;
+    let mut attempts_since_improvement: u32 = 0;
+    let mut total_attempts: u32 = 0;
+
     loop {
-        let mut magic = MagicEntry::new(rng, blocker_mask);
-        if let Ok(lookup_table) = get_lookup_table(&slider, &magic, square) {
-            return (magic, lookup_table);
+        total_attempts += 1;
+        let magic = MagicEntry::new(rng, blocker_mask);
+        let Ok(lookup_table) = get_lookup_table(slider, &magic, square) else {
+            continue;
+        };
+
+        let fill = lookup_table.iter().filter(|&&bb| bb != EMPTY_BITBOARD).count();
+        let is_better = match &best {
+            None => true,
+            Some((_, _, best_fill)) => fill < *best_fill,
+        };
+        if is_better {
+            eprintln!(
+                "  square {square}: new best fill {fill} (target {distinct_values}) after {total_attempts} attempts"
+            );
+            best = Some((magic, lookup_table, fill));
+            attempts_since_improvement = 0;
+            if fill == distinct_values {
+                let (magic, lookup_table, _) = best.unwrap();
+                return (magic, lookup_table, total_attempts);
+            }
+        } else {
+            attempts_since_improvement += 1;
+        }
+
+        if attempts_since_improvement >= MAX_ATTEMPTS_WITHOUT_IMPROVEMENT
+            || total_attempts >= MAX_TOTAL_ATTEMPTS
+        {
+            let (magic, lookup_table, _) = best.expect("set on the first valid magic above");
+            return (magic, lookup_table, total_attempts);
+        }
+
+        if total_attempts % PROGRESS_INTERVAL == 0 {
+            let best_fill = best.as_ref().map(|(_, _, fill)| *fill);
+            eprintln!(
+                "  square {square}: {total_attempts} attempts so far, best fill {best_fill:?}                  (target {distinct_values}), {attempts_since_improvement} since last improvement"
+            );
         }
     }
 }
@@ -218,7 +262,10 @@ fn get_lookup_table(
             return Err(LookupTableCreationError);
         }
     }
-    let last_slider_attack_idx = lookup_table.iter().rposition(|&bb| bb != EMPTY_BITBOARD).expect("local table cannot have all nonzero values");
+    let last_slider_attack_idx = lookup_table
+        .iter()
+        .rposition(|&bb| bb != EMPTY_BITBOARD)
+        .expect("local table has EMPTY_BITBOARD as entries");
     lookup_table.truncate(last_slider_attack_idx + 1);
 
     Ok(lookup_table)
@@ -229,14 +276,19 @@ pub fn get_magic_index(magic_entry: &MagicEntry, occupancy: BitBoard) -> usize {
         >> magic_entry.shift) as usize
 }
 
-pub fn print_magics(slider: &Slider, slider_name: &str) -> () {
+pub fn print_magic_entries(entries: &[MagicEntry], slider_name: &str) {
     let slider_name = slider_name.to_uppercase();
-    let (magics, _) = get_slider_magics(slider);
-    // println!("pub const {slider_name}:[u64;NumOf::SQUARES] = [");
-    if let Some((last_magic, rest)) = magics.split_last() {
-        rest.into_iter().for_each(|m| println!("{},", m.number));
-        println!("{}];", last_magic.number);
+    println!("pub const {slider_name}_MAGICS: [u64; {}] = [", entries.len());
+    if let Some((last_magic, rest)) = entries.split_last() {
+        rest.iter().for_each(|m| println!("    {},", m.number));
+        println!("    {}", last_magic.number);
     }
+    println!("];");
+}
+
+pub fn print_magics(slider: &Slider, slider_name: &str) -> () {
+    let (magics, _) = get_slider_magics(slider);
+    print_magic_entries(&magics, slider_name);
 }
 
 #[cfg(test)]

@@ -7,7 +7,7 @@ use flying_goose::{
     types::{BitBoard, print_bb},
 };
 
-use crate::magic::get_slider_magics;
+use crate::magic::{get_slider_magics, print_magic_entries};
 use magic::print_magics;
 
 fn main() {
@@ -20,4 +20,5 @@ fn main() {
         size_kb,
         start.elapsed()
     );
+    print_magic_entries(&magic_entries, "rook");
 }
