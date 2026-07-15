@@ -1,8 +1,11 @@
-use std::fmt::Display;
 use rand::Rng;
 use rand_pcg::Pcg64;
+use std::fmt::Display;
 
-use crate::{board::types::{EMPTY_BITBOARD, FULL_BITBOARD}, types::{BitBoard, NumOf}};
+use crate::{
+    board::types::{EMPTY_BITBOARD, FULL_BITBOARD},
+    types::{BitBoard, NumOf},
+};
 
 pub const MAX_ROOK_TABLE_SIZE: usize = 102400;
 pub const MAX_BISHOP_TABLE_SIZE: usize = 5248;
@@ -62,5 +65,3 @@ impl MagicEntry {
         }
     }
 }
-
-

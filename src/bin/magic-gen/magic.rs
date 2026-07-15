@@ -5,8 +5,8 @@ use std::sync::OnceLock;
 use flying_goose::board::types::{
     Direction, EMPTY_BITBOARD, FULL_BITBOARD, Files, Ranks, Square, SquareCoord,
 };
-use flying_goose::movement::sliders::magics::MagicEntry;
 use flying_goose::movement::sliders::defs::{Slider, get_all_blockers_subsets};
+use flying_goose::movement::sliders::magics::MagicEntry;
 use flying_goose::types::print_bb;
 use flying_goose::types::{BitBoard, NumOf};
 use rand::{Rng, SeedableRng};
@@ -57,8 +57,11 @@ fn init_square_lists() -> Result<(CornerArray, EdgeArray, InteriorArray), InitSq
     Ok((corner_squares, edge_squares, interior_squares))
 }
 
-
-pub fn get_slider_magics(slider: &Slider, seed: u64, verbose: bool) -> (Vec<MagicEntry>, Vec<BitBoard>) {
+pub fn get_slider_magics(
+    slider: &Slider,
+    seed: u64,
+    verbose: bool,
+) -> (Vec<MagicEntry>, Vec<BitBoard>) {
     let mut rng = Pcg64::seed_from_u64(seed);
     // Sized to the classical no-sharing total: every square placed back-to-back with
     // zero overlap always fits, so this is a safe hard upper bound no matter how the
@@ -132,7 +135,12 @@ pub fn get_slider_magics(slider: &Slider, seed: u64, verbose: bool) -> (Vec<Magi
 /// `MAX_ATTEMPTS_WITHOUT_IMPROVEMENT` consecutive attempts with no improvement, or after
 /// `MAX_TOTAL_ATTEMPTS` attempts total, whichever comes first — so a square that keeps
 /// finding rare, tiny improvements forever can't turn this into an unbounded search.
-fn find_magic(rng: &mut Pcg64, slider: &Slider, square: Square, verbose: bool) -> (MagicEntry, Vec<BitBoard>, u32) {
+fn find_magic(
+    rng: &mut Pcg64,
+    slider: &Slider,
+    square: Square,
+    verbose: bool,
+) -> (MagicEntry, Vec<BitBoard>, u32) {
     const MAX_ATTEMPTS_WITHOUT_IMPROVEMENT: u32 = 100_000;
     const MAX_TOTAL_ATTEMPTS: u32 = 5_000_000;
     const PROGRESS_INTERVAL: u32 = 50_000;
@@ -156,7 +164,10 @@ fn find_magic(rng: &mut Pcg64, slider: &Slider, square: Square, verbose: bool) -
             continue;
         };
 
-        let fill = lookup_table.iter().filter(|&&bb| bb != EMPTY_BITBOARD).count();
+        let fill = lookup_table
+            .iter()
+            .filter(|&&bb| bb != EMPTY_BITBOARD)
+            .count();
         let is_better = match &best {
             None => true,
             Some((_, _, best_fill)) => fill < *best_fill,
@@ -254,7 +265,9 @@ pub fn print_magics(slider: &Slider, slider_name: &str) -> () {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use flying_goose::movement::sliders::defs::{BISHOP_SLIDER, ROOK_SLIDER, get_all_blockers_subsets};
+    use flying_goose::movement::sliders::defs::{
+        BISHOP_SLIDER, ROOK_SLIDER, get_all_blockers_subsets,
+    };
 
     #[test]
     fn rook_magic_lookup_is_correct() {

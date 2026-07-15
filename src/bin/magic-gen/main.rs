@@ -9,8 +9,8 @@ use flying_goose::{
 use rand::{Rng, SeedableRng};
 use rand_pcg::Pcg64;
 
-use flying_goose::movement::sliders::magics::MagicEntry;
 use crate::magic::{RANDOM_SEED, get_slider_magics, print_magic_entries};
+use flying_goose::movement::sliders::magics::MagicEntry;
 use magic::print_magics;
 
 fn main() {
@@ -45,8 +45,7 @@ fn generate_magics(slider: &Slider, slider_name: &str) -> () {
                         let thread_start = std::time::Instant::now();
                         let (magic_entries, slider_global_table) =
                             get_slider_magics(slider, seed, verbose);
-                        let size_kb = (slider_global_table.len()
-                            * std::mem::size_of::<BitBoard>())
+                        let size_kb = (slider_global_table.len() * std::mem::size_of::<BitBoard>())
                             as f64
                             / 1024.0;
                         println!(
