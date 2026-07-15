@@ -3,20 +3,20 @@ mod magic;
 
 use flying_goose::{
     board::types::EMPTY_BITBOARD,
-    movement::sliders::{BISHOP_SLIDER, ROOK_SLIDER, Slider},
+    movement::sliders::defs::{BISHOP_SLIDER, ROOK_SLIDER, Slider},
     types::{BitBoard, print_bb},
 };
 use rand::{Rng, SeedableRng};
 use rand_pcg::Pcg64;
 
-use crate::magic::{MagicEntry, RANDOM_SEED, get_slider_magics, print_magic_entries};
+use flying_goose::movement::sliders::magics::MagicEntry;
+use crate::magic::{RANDOM_SEED, get_slider_magics, print_magic_entries};
 use magic::print_magics;
 
 fn main() {
     generate_magics(&ROOK_SLIDER, "rook");
     generate_magics(&BISHOP_SLIDER, "bishop");
 }
-
 
 fn generate_magics(slider: &Slider, slider_name: &str) -> () {
     let num_threads = std::thread::available_parallelism()

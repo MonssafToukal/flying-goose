@@ -1,6 +1,5 @@
-pub mod magics;
 pub mod sliders;
-use magics::{BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE};
+use sliders::magics::{MAX_BISHOP_TABLE_SIZE, MAX_ROOK_TABLE_SIZE};
 
 use crate::{board::types::EMPTY_BITBOARD, types::BitBoard};
 
@@ -12,8 +11,8 @@ pub struct MovementData {
 impl MovementData {
     pub fn new() -> Self {
         Self {
-            rook_lut: vec![EMPTY_BITBOARD; ROOK_TABLE_SIZE],
-            bishop_lut: vec![EMPTY_BITBOARD; BISHOP_TABLE_SIZE],
+            rook_lut: vec![EMPTY_BITBOARD; MAX_ROOK_TABLE_SIZE],
+            bishop_lut: vec![EMPTY_BITBOARD; MAX_BISHOP_TABLE_SIZE],
         }
     }
 }
