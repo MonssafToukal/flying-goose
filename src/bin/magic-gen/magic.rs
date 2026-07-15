@@ -215,7 +215,7 @@ fn get_lookup_table(
     let square = SquareCoord::try_from(square as u8).unwrap();
     for blocker_subset in get_all_blockers_subsets(magic_entry.blocker_mask) {
         let eligible_moves = slider.get_moves(square, blocker_subset);
-        let index = get_magic_index(&magic_entry, blocker_subset);
+        let index = magic_entry.get_magic_index(blocker_subset);
         let table_entry = &mut lookup_table[index];
         if *table_entry == EMPTY_BITBOARD {
             *table_entry = eligible_moves;
@@ -232,10 +232,6 @@ fn get_lookup_table(
     Ok(lookup_table)
 }
 
-pub fn get_magic_index(magic_entry: &MagicEntry, occupancy: BitBoard) -> usize {
-    ((occupancy | magic_entry.inverse_blocker_mask).wrapping_mul(magic_entry.number)
-        >> magic_entry.shift) as usize
-}
 
 pub fn print_magic_entries(entries: &[MagicEntry], slider_name: &str) {
     let slider_name = slider_name.to_uppercase();
@@ -279,7 +275,7 @@ mod tests {
                     let sq = SquareCoord::try_from(sq_idx as u8).unwrap();
                     for blockers in get_all_blockers_subsets(entry.blocker_mask) {
                         let expected = ROOK_SLIDER.get_moves(sq, blockers);
-                        let idx = get_magic_index(entry, blockers);
+                        let idx = entry.get_magic_index(blockers);
                         assert_eq!(
                             table[entry.offset as usize + idx],
                             expected,
@@ -303,7 +299,7 @@ mod tests {
                     let sq = SquareCoord::try_from(sq_idx as u8).unwrap();
                     for blockers in get_all_blockers_subsets(entry.blocker_mask) {
                         let expected = BISHOP_SLIDER.get_moves(sq, blockers);
-                        let idx = get_magic_index(entry, blockers);
+                        let idx = entry.get_magic_index(blockers);
                         assert_eq!(
                             table[entry.offset as usize + idx],
                             expected,

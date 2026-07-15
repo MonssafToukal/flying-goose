@@ -64,4 +64,9 @@ impl MagicEntry {
             shift: num_squares - number_of_bits_set,
         }
     }
+    pub fn get_magic_index(&self, occupancy: BitBoard) -> usize {
+        ((occupancy | self.inverse_blocker_mask).wrapping_mul(self.number)
+            >> self.shift) as usize
+    }
 }
+
