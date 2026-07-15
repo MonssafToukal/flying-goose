@@ -13,7 +13,7 @@ use rand_pcg::Pcg64;
 
 use flying_goose::movement::sliders::{BISHOP_SLIDER, ROOK_SLIDER};
 
-const RANDOM_SEED: u64 = 1290381293;
+pub const RANDOM_SEED: u64 = 1290381293;
 const ROOK_TABLE_SIZE: usize = 102400;
 const BISHOP_TABLE_SIZE: usize = 5248;
 
@@ -112,8 +112,8 @@ impl MagicEntry {
     }
 }
 
-pub fn get_slider_magics(slider: &Slider) -> (Vec<MagicEntry>, Vec<BitBoard>) {
-    let mut rng = Pcg64::seed_from_u64(RANDOM_SEED);
+pub fn get_slider_magics(slider: &Slider, seed: u64, verbose: bool) -> (Vec<MagicEntry>, Vec<BitBoard>) {
+    let mut rng = Pcg64::seed_from_u64(seed);
     // Sized to the classical no-sharing total: every square placed back-to-back with
     // zero overlap always fits, so this is a safe hard upper bound no matter how the
     // search below goes.
@@ -131,7 +131,7 @@ pub fn get_slider_magics(slider: &Slider) -> (Vec<MagicEntry>, Vec<BitBoard>) {
     .concat();
 
     for square_idx in ordered_squares_by_bitset {
-        let (mut magic_entry, table, attempts) = find_magic(&mut rng, slider, square_idx);
+        let (mut magic_entry, table, attempts) = find_magic(&mut rng, slider, square_idx, verbose);
         let fill = table.iter().filter(|&&bb| bb != EMPTY_BITBOARD).count();
 
         let offset = (0..=global_table.len() - table.len())
@@ -154,13 +154,15 @@ pub fn get_slider_magics(slider: &Slider) -> (Vec<MagicEntry>, Vec<BitBoard>) {
         }
         magic_entry.offset = offset as u32;
 
-        println!(
-            "square {square_idx:>2}: bits={} offset={} table_len={} fill={:.1}% ({attempts} attempts)",
-            magic_entry.index_bits,
-            offset,
-            table.len(),
-            100.0 * fill as f64 / table.len() as f64
-        );
+        if verbose {
+            println!(
+                "square {square_idx:>2}: bits={} offset={} table_len={} fill={:.1}% ({attempts} attempts)",
+                magic_entry.index_bits,
+                offset,
+                table.len(),
+                100.0 * fill as f64 / table.len() as f64
+            );
+        }
         magic_entries[square_idx] = magic_entry;
     }
 
@@ -184,7 +186,7 @@ pub fn get_slider_magics(slider: &Slider) -> (Vec<MagicEntry>, Vec<BitBoard>) {
 /// `MAX_ATTEMPTS_WITHOUT_IMPROVEMENT` consecutive attempts with no improvement, or after
 /// `MAX_TOTAL_ATTEMPTS` attempts total, whichever comes first — so a square that keeps
 /// finding rare, tiny improvements forever can't turn this into an unbounded search.
-fn find_magic(rng: &mut Pcg64, slider: &Slider, square: Square) -> (MagicEntry, Vec<BitBoard>, u32) {
+fn find_magic(rng: &mut Pcg64, slider: &Slider, square: Square, verbose: bool) -> (MagicEntry, Vec<BitBoard>, u32) {
     const MAX_ATTEMPTS_WITHOUT_IMPROVEMENT: u32 = 100_000;
     const MAX_TOTAL_ATTEMPTS: u32 = 5_000_000;
     const PROGRESS_INTERVAL: u32 = 50_000;
@@ -214,9 +216,11 @@ fn find_magic(rng: &mut Pcg64, slider: &Slider, square: Square) -> (MagicEntry, 
             Some((_, _, best_fill)) => fill < *best_fill,
         };
         if is_better {
-            eprintln!(
-                "  square {square}: new best fill {fill} (target {distinct_values}) after {total_attempts} attempts"
-            );
+            if verbose {
+                eprintln!(
+                    "  square {square}: new best fill {fill} (target {distinct_values}) after {total_attempts} attempts"
+                );
+            }
             best = Some((magic, lookup_table, fill));
             attempts_since_improvement = 0;
             if fill == distinct_values {
@@ -234,7 +238,7 @@ fn find_magic(rng: &mut Pcg64, slider: &Slider, square: Square) -> (MagicEntry, 
             return (magic, lookup_table, total_attempts);
         }
 
-        if total_attempts % PROGRESS_INTERVAL == 0 {
+        if verbose && total_attempts % PROGRESS_INTERVAL == 0 {
             let best_fill = best.as_ref().map(|(_, _, fill)| *fill);
             eprintln!(
                 "  square {square}: {total_attempts} attempts so far, best fill {best_fill:?}                  (target {distinct_values}), {attempts_since_improvement} since last improvement"
@@ -278,16 +282,26 @@ pub fn get_magic_index(magic_entry: &MagicEntry, occupancy: BitBoard) -> usize {
 
 pub fn print_magic_entries(entries: &[MagicEntry], slider_name: &str) {
     let slider_name = slider_name.to_uppercase();
-    println!("pub const {slider_name}_MAGICS: [u64; {}] = [", entries.len());
-    if let Some((last_magic, rest)) = entries.split_last() {
-        rest.iter().for_each(|m| println!("    {},", m.number));
-        println!("    {}", last_magic.number);
+    println!(
+        "pub const {slider_name}_MAGICS: [MagicEntry; {}] = [",
+        entries.len()
+    );
+    for entry in entries {
+        println!(
+            "    MagicEntry {{ number: {}, blocker_mask: {:#018x}, inverse_blocker_mask: {:#018x}, offset: {}, index_bits: {}, shift: {} }},",
+            entry.number,
+            entry.blocker_mask,
+            entry.inverse_blocker_mask,
+            entry.offset,
+            entry.index_bits,
+            entry.shift
+        );
     }
     println!("];");
 }
 
 pub fn print_magics(slider: &Slider, slider_name: &str) -> () {
-    let (magics, _) = get_slider_magics(slider);
+    let (magics, _) = get_slider_magics(slider, RANDOM_SEED, true);
     print_magic_entries(&magics, slider_name);
 }
 
@@ -301,7 +315,7 @@ mod tests {
         std::thread::Builder::new()
             .stack_size(16 * 1024 * 1024)
             .spawn(|| {
-                let (entries, table) = get_slider_magics(&ROOK_SLIDER);
+                let (entries, table) = get_slider_magics(&ROOK_SLIDER, RANDOM_SEED, true);
                 for (sq_idx, entry) in entries.iter().enumerate() {
                     let sq = SquareCoord::try_from(sq_idx as u8).unwrap();
                     for blockers in get_all_blockers_subsets(entry.blocker_mask) {
@@ -325,7 +339,7 @@ mod tests {
         std::thread::Builder::new()
             .stack_size(16 * 1024 * 1024)
             .spawn(|| {
-                let (entries, table) = get_slider_magics(&BISHOP_SLIDER);
+                let (entries, table) = get_slider_magics(&BISHOP_SLIDER, RANDOM_SEED, true);
                 for (sq_idx, entry) in entries.iter().enumerate() {
                     let sq = SquareCoord::try_from(sq_idx as u8).unwrap();
                     for blockers in get_all_blockers_subsets(entry.blocker_mask) {
