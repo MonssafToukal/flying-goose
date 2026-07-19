@@ -1,9 +1,10 @@
 pub mod sliders;
+pub mod nonsliders;
 use std::fmt::Display;
 
 use sliders::{defs::{BISHOP_SLIDER, ROOK_SLIDER, get_all_blockers_subsets}, magic_entries::{BISHOP_MAGICS, ROOK_MAGICS}, magics::{MAX_BISHOP_TABLE_SIZE, MAX_ROOK_TABLE_SIZE}};
 
-use crate::{board::types::{EMPTY_BITBOARD, SquareCoord}, types::BitBoard};
+use crate::{board::types::{EMPTY_BITBOARD, SquareCoord}, types::{BitBoard, NumOf}};
 
 
 #[derive(Debug)]
@@ -23,6 +24,8 @@ impl Display for MovementDataInitError {
 }
 
 pub struct MovementData {
+    pub king_attacks: [BitBoard; NumOf::SQUARES],
+    pub knight_attacks: [BitBoard; NumOf::SQUARES],
     pub rook_attacks: Vec<BitBoard>,
     pub bishop_attacks: Vec<BitBoard>,
 }
@@ -30,20 +33,32 @@ pub struct MovementData {
 impl MovementData {
     pub fn new() -> Self {
         Self {
+            king_attacks: [EMPTY_BITBOARD; NumOf::SQUARES],
+            knight_attacks: [EMPTY_BITBOARD; NumOf::SQUARES],
             rook_attacks: vec![EMPTY_BITBOARD; MAX_ROOK_TABLE_SIZE],
             bishop_attacks: vec![EMPTY_BITBOARD; MAX_BISHOP_TABLE_SIZE],
         }
     }
 
     pub fn init(&mut self) -> Result<(), MovementDataInitError> {
+        self.init_king_attacks();
+        self.init_knight_attacks();
         self.init_rook_attacks()?;
         self.init_bishop_attacks()?;
         Ok(())
     }
+
 }
 
 
 impl MovementData {
+    fn init_king_attacks(&self) -> () {
+        todo!()
+    }
+
+    fn init_knight_attacks(&mut self) -> () {
+        todo!()
+    }
     fn init_rook_attacks(&mut self) -> Result<(), MovementDataInitError> {
         for (square_idx, &magic_entry) in ROOK_MAGICS.iter().enumerate() {
             let square_coord = SquareCoord::try_from(square_idx as u8).unwrap();
