@@ -1,4 +1,3 @@
-
 pub type BitBoard = u64;
 pub const EMPTY_BITBOARD: BitBoard = 0;
 pub const FULL_BITBOARD: BitBoard = BitBoard::MAX;
@@ -78,4 +77,3 @@ const fn generate_rank_masks() -> [BitBoard; NumOf::RANKS] {
     }
     masks
 }
-

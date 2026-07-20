@@ -3,7 +3,6 @@ use std::fmt::Display;
 use crate::types::NumOf;
 use num_enum::TryFromPrimitive;
 
-
 pub const MAX_GAME_MOVES: u64 = 2048;
 
 // 50 full moves equates to 100 half moves

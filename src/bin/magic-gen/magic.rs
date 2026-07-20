@@ -2,14 +2,12 @@ use std::collections::HashSet;
 use std::fmt::Display;
 use std::sync::OnceLock;
 
-use flying_goose::board::types::{
-    Direction, Square, SquareCoord,
-};
-use flying_goose::types::{EMPTY_BITBOARD, FULL_BITBOARD};
+use flying_goose::board::types::{Direction, Square, SquareCoord};
 use flying_goose::movement::sliders::defs::{Slider, get_all_blockers_subsets};
 use flying_goose::movement::sliders::magics::MagicEntry;
 use flying_goose::types::print_bb;
 use flying_goose::types::{BitBoard, NumOf};
+use flying_goose::types::{EMPTY_BITBOARD, FULL_BITBOARD};
 use rand::{Rng, SeedableRng};
 use rand_pcg::Pcg64;
 
@@ -232,7 +230,6 @@ fn get_lookup_table(
 
     Ok(lookup_table)
 }
-
 
 pub fn print_magic_entries(entries: &[MagicEntry], slider_name: &str) {
     let slider_name = slider_name.to_uppercase();

@@ -3,7 +3,6 @@ pub mod board;
 pub mod movement;
 pub mod types;
 
-use types::{EMPTY_BITBOARD, FILE_MASKS, RANK_MASKS};
 use crate::board::types::SquareCoord;
 use movement::{
     MovementData, MovementDataInitError,
@@ -12,7 +11,8 @@ use movement::{
         magic_entries::{BISHOP_MAGICS, ROOK_MAGICS},
     },
 };
-use types::{BitBoard, NumOf};
+use types::{BitBoard, NumOf, SQUARE_MASKS};
+use types::{EMPTY_BITBOARD, FILE_MASKS, RANK_MASKS};
 
 fn bb_to_rows(bb: BitBoard) -> Vec<String> {
     const LAST: u64 = 63;
@@ -49,18 +49,26 @@ fn main() -> Result<(), MovementDataInitError> {
     let mut movement_data = MovementData::new();
     movement_data.init()?;
 
-    for (sq_idx, &magic_entry) in BISHOP_MAGICS.iter().enumerate() {
-        let sq = SquareCoord::try_from(sq_idx as u8).unwrap();
-        let blocker_mask = magic_entry.blocker_mask;
+    // for (sq_idx, &magic_entry) in BISHOP_MAGICS.iter().enumerate() {
+    //     let sq = SquareCoord::try_from(sq_idx as u8).unwrap();
+    //     let blocker_mask = magic_entry.blocker_mask;
 
-        let expected = BISHOP_SLIDER.get_moves(sq, blocker_mask);
-        let table_idx = magic_entry.get_magic_index(blocker_mask) + magic_entry.offset as usize;
-        let actual = movement_data.bishop_attacks[table_idx];
+    //     let expected = BISHOP_SLIDER.get_moves(sq, blocker_mask);
+    //     let table_idx = magic_entry.get_magic_index(blocker_mask) + magic_entry.offset as usize;
+    //     let actual = movement_data.bishop_attacks[table_idx];
 
-        println!("=== Square {} ===", sq_idx);
+    //     println!("=== Square {} ===", sq_idx);
+    //     print_boards_side_by_side(
+    //         &["Blocker mask", "Expected moves", "Actual (table)"],
+    //         &[blocker_mask, expected, actual],
+    //     );
+    //     println!();
+    // }
+    //
+    for square_idx in 0..NumOf::SQUARES {
         print_boards_side_by_side(
-            &["Blocker mask", "Expected moves", "Actual (table)"],
-            &[blocker_mask, expected, actual],
+            &["King position", "King attacks"],
+            &[SQUARE_MASKS[square_idx], movement_data.king_attacks[square_idx]]
         );
         println!();
     }

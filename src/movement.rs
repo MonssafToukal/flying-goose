@@ -1,12 +1,19 @@
+mod nonsliders;
 pub mod sliders;
-pub mod nonsliders;
 use std::fmt::Display;
 
-use sliders::{defs::{BISHOP_SLIDER, ROOK_SLIDER, get_all_blockers_subsets}, magic_entries::{BISHOP_MAGICS, ROOK_MAGICS}, magics::{MAX_BISHOP_TABLE_SIZE, MAX_ROOK_TABLE_SIZE}};
+use nonsliders::get_king_attacks;
+use sliders::{
+    defs::{BISHOP_SLIDER, ROOK_SLIDER, get_all_blockers_subsets},
+    magic_entries::{BISHOP_MAGICS, ROOK_MAGICS},
+    magics::{MAX_BISHOP_TABLE_SIZE, MAX_ROOK_TABLE_SIZE},
+};
 
-use crate::{board::types::{SquareCoord}, types::{BitBoard, NumOf}};
 use crate::types::EMPTY_BITBOARD;
-
+use crate::{
+    board::types::SquareCoord,
+    types::{BitBoard, NumOf},
+};
 
 #[derive(Debug)]
 pub enum MovementDataInitError {
@@ -17,8 +24,12 @@ pub enum MovementDataInitError {
 impl Display for MovementDataInitError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let err = match self {
-            MovementDataInitError::RookAttackCollisionError => "Collision detected while initializing rook attack table",
-            MovementDataInitError::BishopAttackCollisionError => "Collision detected while initializing bishop attack table",
+            MovementDataInitError::RookAttackCollisionError => {
+                "Collision detected while initializing rook attack table"
+            }
+            MovementDataInitError::BishopAttackCollisionError => {
+                "Collision detected while initializing bishop attack table"
+            }
         };
         write!(f, "{err}")
     }
@@ -43,22 +54,26 @@ impl MovementData {
 
     pub fn init(&mut self) -> Result<(), MovementDataInitError> {
         self.init_king_attacks();
-        self.init_knight_attacks();
+        // self.init_knight_attacks();
         self.init_rook_attacks()?;
         self.init_bishop_attacks()?;
         Ok(())
     }
-
 }
 
-
 impl MovementData {
-    fn init_king_attacks(&self) -> [BitBoard; NumOf::SQUARES]  {
-        [EMPTY_BITBOARD; NumOf::SQUARES]
+    fn init_king_attacks(&mut self) -> () {
+        for (square_idx, king_attack_entry) in self.king_attacks.iter_mut().enumerate() {
+            *king_attack_entry =  get_king_attacks(square_idx);
+        }
     }
 
-    fn init_knight_attacks(&mut self) -> [BitBoard; NumOf::SQUARES] {
-        [EMPTY_BITBOARD; NumOf::SQUARES]
+    fn init_knight_attacks(&mut self) -> () {
+        // let knight_attacks = &mut self.knight_attacks;
+        // for (square_idx, knight_attack) in self.knight_attacks.iter().enumerate() {
+        //     *knight_attack = get_knight_moves(square_idx);
+        // }
+        todo!()
     }
     fn init_rook_attacks(&mut self) -> Result<(), MovementDataInitError> {
         for (square_idx, &magic_entry) in ROOK_MAGICS.iter().enumerate() {
@@ -67,7 +82,8 @@ impl MovementData {
             for blocker_subset in get_all_blockers_subsets(blocker_mask) {
                 let eligible_rook_moves = ROOK_SLIDER.get_moves(square_coord, blocker_subset);
                 let magic_index = magic_entry.get_magic_index(blocker_subset);
-                let rook_attack_slot = &mut self.rook_attacks[magic_index + magic_entry.offset as usize];
+                let rook_attack_slot =
+                    &mut self.rook_attacks[magic_index + magic_entry.offset as usize];
                 if *rook_attack_slot != EMPTY_BITBOARD && *rook_attack_slot != eligible_rook_moves {
                     return Err(MovementDataInitError::RookAttackCollisionError);
                 }
@@ -84,15 +100,17 @@ impl MovementData {
             for blocker_subset in get_all_blockers_subsets(blocker_mask) {
                 let eligible_bishop_moves = BISHOP_SLIDER.get_moves(square_coord, blocker_subset);
                 let magic_index = magic_entry.get_magic_index(blocker_subset);
-                let bishop_attack_slot = &mut self.bishop_attacks[magic_index + magic_entry.offset as usize];
-                if *bishop_attack_slot != EMPTY_BITBOARD && *bishop_attack_slot != eligible_bishop_moves {
+                let bishop_attack_slot =
+                    &mut self.bishop_attacks[magic_index + magic_entry.offset as usize];
+                if *bishop_attack_slot != EMPTY_BITBOARD
+                    && *bishop_attack_slot != eligible_bishop_moves
+                {
                     return Err(MovementDataInitError::BishopAttackCollisionError);
                 }
                 *bishop_attack_slot = eligible_bishop_moves;
             }
         }
         Ok(())
-
     }
 }
 
