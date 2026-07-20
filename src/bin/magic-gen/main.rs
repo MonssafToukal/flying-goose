@@ -2,9 +2,7 @@
 mod magic;
 
 use flying_goose::{
-    board::types::EMPTY_BITBOARD,
-    movement::sliders::defs::{BISHOP_SLIDER, ROOK_SLIDER, Slider},
-    types::{BitBoard, print_bb},
+    movement::sliders::defs::{BISHOP_SLIDER, ROOK_SLIDER, Slider}, types::{BitBoard, EMPTY_BITBOARD, print_bb}
 };
 use rand::{Rng, SeedableRng};
 use rand_pcg::Pcg64;

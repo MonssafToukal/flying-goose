@@ -2,10 +2,7 @@ use rand::Rng;
 use rand_pcg::Pcg64;
 use std::fmt::Display;
 
-use crate::{
-    board::types::{EMPTY_BITBOARD, FULL_BITBOARD},
-    types::{BitBoard, NumOf},
-};
+use crate::types::{BitBoard, EMPTY_BITBOARD, FULL_BITBOARD, NumOf};
 
 pub const MAX_ROOK_TABLE_SIZE: usize = 102400;
 pub const MAX_BISHOP_TABLE_SIZE: usize = 5248;

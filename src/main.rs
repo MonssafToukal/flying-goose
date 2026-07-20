@@ -3,7 +3,8 @@ pub mod board;
 pub mod movement;
 pub mod types;
 
-use board::types::{EMPTY_BITBOARD, SquareCoord};
+use types::{EMPTY_BITBOARD, FILE_MASKS, RANK_MASKS};
+use crate::board::types::SquareCoord;
 use movement::{
     MovementData, MovementDataInitError,
     sliders::{

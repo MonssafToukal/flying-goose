@@ -4,7 +4,8 @@ use std::fmt::Display;
 
 use sliders::{defs::{BISHOP_SLIDER, ROOK_SLIDER, get_all_blockers_subsets}, magic_entries::{BISHOP_MAGICS, ROOK_MAGICS}, magics::{MAX_BISHOP_TABLE_SIZE, MAX_ROOK_TABLE_SIZE}};
 
-use crate::{board::types::{EMPTY_BITBOARD, SquareCoord}, types::{BitBoard, NumOf}};
+use crate::{board::types::{SquareCoord}, types::{BitBoard, NumOf}};
+use crate::types::EMPTY_BITBOARD;
 
 
 #[derive(Debug)]
@@ -52,12 +53,12 @@ impl MovementData {
 
 
 impl MovementData {
-    fn init_king_attacks(&self) -> () {
-        todo!()
+    fn init_king_attacks(&self) -> [BitBoard; NumOf::SQUARES]  {
+        [EMPTY_BITBOARD; NumOf::SQUARES]
     }
 
-    fn init_knight_attacks(&mut self) -> () {
-        todo!()
+    fn init_knight_attacks(&mut self) -> [BitBoard; NumOf::SQUARES] {
+        [EMPTY_BITBOARD; NumOf::SQUARES]
     }
     fn init_rook_attacks(&mut self) -> Result<(), MovementDataInitError> {
         for (square_idx, &magic_entry) in ROOK_MAGICS.iter().enumerate() {

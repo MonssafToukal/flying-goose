@@ -1,4 +1,8 @@
+
 pub type BitBoard = u64;
+pub const EMPTY_BITBOARD: BitBoard = 0;
+pub const FULL_BITBOARD: BitBoard = BitBoard::MAX;
+
 pub fn print_bb(bitboard: BitBoard) -> () {
     const LAST_SQUARE_BIT: u64 = 63;
     // rank 0 is the last rank from white side pov
@@ -43,3 +47,35 @@ const fn generate_square_masks() -> [BitBoard; NumOf::SQUARES] {
     }
     square_masks
 }
+
+pub const FILE_MASKS: [BitBoard; NumOf::FILES] = generate_file_masks();
+pub const RANK_MASKS: [BitBoard; NumOf::RANKS] = generate_rank_masks();
+
+const fn generate_file_masks() -> [BitBoard; NumOf::FILES] {
+    let mut masks = [EMPTY_BITBOARD; NumOf::FILES];
+    let mut current_file = 0;
+    while current_file < NumOf::FILES {
+        let mut current_rank = 0;
+        while current_rank < NumOf::RANKS {
+            masks[current_file] |= 1u64 << (current_rank * 8 + current_file);
+            current_rank += 1;
+        }
+        current_file += 1;
+    }
+    masks
+}
+
+const fn generate_rank_masks() -> [BitBoard; NumOf::RANKS] {
+    let mut masks = [EMPTY_BITBOARD; NumOf::RANKS];
+    let mut current_rank = 0;
+    while current_rank < NumOf::RANKS {
+        let mut current_file = 0;
+        while current_file < NumOf::FILES {
+            masks[current_rank] |= 1u64 << (current_rank * 8 + current_file);
+            current_file += 1;
+        }
+        current_rank += 1;
+    }
+    masks
+}
+

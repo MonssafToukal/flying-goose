@@ -1,11 +1,8 @@
 use std::fmt::Display;
 
-use crate::types::BitBoard;
 use crate::types::NumOf;
 use num_enum::TryFromPrimitive;
 
-pub const EMPTY_BITBOARD: BitBoard = 0;
-pub const FULL_BITBOARD: BitBoard = BitBoard::MAX;
 
 pub const MAX_GAME_MOVES: u64 = 2048;
 

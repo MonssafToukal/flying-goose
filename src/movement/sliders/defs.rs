@@ -1,5 +1,5 @@
-use crate::board::types::{Direction, EMPTY_BITBOARD, MAX_DIRECTIONS, SquareCoord};
-use crate::types::{BitBoard, NumOf, SQUARE_MASKS};
+use crate::board::types::{Direction, MAX_DIRECTIONS, SquareCoord};
+use crate::types::{BitBoard, EMPTY_BITBOARD, NumOf, SQUARE_MASKS};
 
 pub struct Slider {
     pub directions: [Direction; MAX_DIRECTIONS],

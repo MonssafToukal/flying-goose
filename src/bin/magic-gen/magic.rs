@@ -3,8 +3,9 @@ use std::fmt::Display;
 use std::sync::OnceLock;
 
 use flying_goose::board::types::{
-    Direction, EMPTY_BITBOARD, FULL_BITBOARD, Files, Ranks, Square, SquareCoord,
+    Direction, Square, SquareCoord,
 };
+use flying_goose::types::{EMPTY_BITBOARD, FULL_BITBOARD};
 use flying_goose::movement::sliders::defs::{Slider, get_all_blockers_subsets};
 use flying_goose::movement::sliders::magics::MagicEntry;
 use flying_goose::types::print_bb;
