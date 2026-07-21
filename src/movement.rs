@@ -2,7 +2,7 @@ mod nonsliders;
 pub mod sliders;
 use std::fmt::Display;
 
-use nonsliders::get_king_attacks;
+use nonsliders::{get_king_attacks, get_knight_attacks};
 use sliders::{
     defs::{BISHOP_SLIDER, ROOK_SLIDER, get_all_blockers_subsets},
     magic_entries::{BISHOP_MAGICS, ROOK_MAGICS},
@@ -54,7 +54,7 @@ impl MovementData {
 
     pub fn init(&mut self) -> Result<(), MovementDataInitError> {
         self.init_king_attacks();
-        // self.init_knight_attacks();
+        self.init_knight_attacks();
         self.init_rook_attacks()?;
         self.init_bishop_attacks()?;
         Ok(())
@@ -69,11 +69,9 @@ impl MovementData {
     }
 
     fn init_knight_attacks(&mut self) -> () {
-        // let knight_attacks = &mut self.knight_attacks;
-        // for (square_idx, knight_attack) in self.knight_attacks.iter().enumerate() {
-        //     *knight_attack = get_knight_moves(square_idx);
-        // }
-        todo!()
+        for (square_idx, knight_attack) in self.knight_attacks.iter_mut().enumerate() {
+            *knight_attack = get_knight_attacks(square_idx);
+        }
     }
     fn init_rook_attacks(&mut self) -> Result<(), MovementDataInitError> {
         for (square_idx, &magic_entry) in ROOK_MAGICS.iter().enumerate() {

@@ -67,8 +67,8 @@ fn main() -> Result<(), MovementDataInitError> {
     //
     for square_idx in 0..NumOf::SQUARES {
         print_boards_side_by_side(
-            &["King position", "King attacks"],
-            &[SQUARE_MASKS[square_idx], movement_data.king_attacks[square_idx]]
+            &["Knight position", "Knight attacks"],
+            &[SQUARE_MASKS[square_idx], movement_data.knight_attacks[square_idx]]
         );
         println!();
     }
