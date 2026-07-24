@@ -1,6 +1,6 @@
 use crate::{
     board::types::{Files, Side, Sides, Square},
-    types::{BitBoard, EMPTY_BITBOARD, FILE_MASKS, NumOf, RANK_MASKS, SQUARE_MASKS, print_bb},
+    types::{BitBoard, EMPTY_BITBOARD, FILE_MASKS, NumOf, RANK_MASKS, SQUARE_MASKS},
 };
 
 #[repr(u8)]

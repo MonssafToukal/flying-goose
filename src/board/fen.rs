@@ -2,12 +2,12 @@ use crate::{
     board::{
         Board,
         types::{
-            CastlingRight, FIFTY_MOVE_RULE, Files, MAX_GAME_MOVES, Pieces, Ranks, Sides,
-            SquareCoord,
+            CastlingRight, FIFTY_MOVE_RULE, Files, MAX_GAME_MOVES, Pieces, Ranks,
         },
     },
     types::{NumOf, SQUARE_MASKS},
 };
+use crate::board::types::Sides;
 use std::fmt::Display;
 
 type FenParseFunc = fn(board: &mut Board, part: &str) -> Result<(), FenError>;
@@ -217,10 +217,10 @@ pub fn fen_parse_enpassant(board: &mut Board, part: &str) -> Result<(), FenError
             '6' => Ranks::R6,
             _ => return Err(FenError::EnpassantPart),
         };
-        board.game_state.enpassant = Some(SquareCoord {
-            file: file,
-            rank: rank,
-        });
+        let file = file as usize;
+        let rank = rank as usize;
+        let enpassant_square_idx = file + (rank * NumOf::RANKS);
+        board.game_state.enpassant = Some(enpassant_square_idx);
         return Ok(());
     }
     Err(FenError::EnpassantPart)

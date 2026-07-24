@@ -1,12 +1,11 @@
-use super::{
-    types::{CastlingRight, CastlingState, Sides, SquareCoord},
-    zobrist::ZobristKey,
-};
+use crate::board::types::{CastlingState, Sides, Square};
+use crate::board::types::CastlingRight;
+use crate::board::zobrist::ZobristKey;
 
 #[derive(Clone, Copy, Debug)]
 pub struct GameState {
     pub castling: CastlingState,
-    pub enpassant: Option<SquareCoord>,
+    pub enpassant: Option<Square>,
     pub active_color: u8,
     pub half_move_clock: u8,
     pub fullmove_counter: u16,
@@ -32,7 +31,7 @@ impl GameState {
         // We don't use XOR here because we want to clear the castling regardless of its previous state
         self.castling &= !(right as u8);
     }
-    pub fn set_enpassant(&mut self, square: SquareCoord) {
+    pub fn set_enpassant(&mut self, square: Square) {
         self.enpassant = Some(square);
     }
     pub fn clear_enpassant(&mut self) {

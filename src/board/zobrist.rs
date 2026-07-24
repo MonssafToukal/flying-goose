@@ -1,6 +1,6 @@
 use crate::types::NumOf;
 
-use super::types::{CastlingState, Files, Piece, Pieces, Side, Sides, Square};
+use super::types::{CastlingState, Piece, Pieces, Side, Sides, Square};
 use rand::{Rng, SeedableRng};
 use rand_pcg::Pcg64;
 
@@ -73,8 +73,8 @@ impl Zobrist {
         );
         self.castling_hashes[castling_state as usize]
     }
-    pub fn enpassant(&self, file: Files) -> ZobristKey {
-        self.enpassant_hashes[file as usize]
+    pub fn enpassant(&self, file: usize) -> ZobristKey {
+        self.enpassant_hashes[file]
     }
     pub fn side(&self) -> ZobristKey {
         self.side_hashes
