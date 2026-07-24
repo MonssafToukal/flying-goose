@@ -19,15 +19,15 @@ impl KingDirections {
     // pub const _WEST_SHIFT: i8 = -1;
 
     fn shift(&self, bb: BitBoard) -> BitBoard {
-        const _NORTH_SHIFT: u8 = 8;
-        const _SOUTH_SHIFT: u8 = 8;
-        const _EAST_SHIFT: u8 = 1;
-        const _WEST_SHIFT: u8 = 1;
+        const NORTH_SHIFT: u8 = 8;
+        const SOUTH_SHIFT: u8 = 8;
+        const EAST_SHIFT: u8 = 1;
+        const WEST_SHIFT: u8 = 1;
         match self {
-            KingDirections::North => bb << _NORTH_SHIFT,
-            KingDirections::South => bb >> _SOUTH_SHIFT,
-            KingDirections::EAST => bb << _EAST_SHIFT,
-            KingDirections::WEST => bb >> _WEST_SHIFT,
+            KingDirections::North => bb << NORTH_SHIFT,
+            KingDirections::South => bb >> SOUTH_SHIFT,
+            KingDirections::EAST => bb << EAST_SHIFT,
+            KingDirections::WEST => bb >> WEST_SHIFT,
         }
     }
 }
@@ -160,7 +160,6 @@ pub fn get_knight_attacks(knight_square_idx: Square) -> BitBoard {
     knight_attacks
 }
 
-// TODO: do just like knight attacks and iterate over the directions
 pub fn get_king_attacks(king_square_idx: Square) -> BitBoard {
     const NOT_RANK_8: BitBoard = !RANK_MASKS[NumOf::RANKS - 1];
     const NOT_RANK_1: BitBoard = !RANK_MASKS[0];
