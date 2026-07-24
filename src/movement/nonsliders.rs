@@ -1,4 +1,7 @@
-use crate::{board::types::{Files, Square}, types::{BitBoard, EMPTY_BITBOARD, FILE_MASKS, NumOf, RANK_MASKS, SQUARE_MASKS}};
+use crate::{
+    board::types::{Files, Square},
+    types::{BitBoard, EMPTY_BITBOARD, FILE_MASKS, NumOf, RANK_MASKS, SQUARE_MASKS},
+};
 
 #[repr(u8)]
 pub enum KingDirections {
@@ -55,14 +58,14 @@ impl KnightDirections {
     // const _WEST_SOUTH: i8 = -10;
 
     const ALL: [Self; 8] = [
-            KnightDirections::NORTH_EAST,
-            KnightDirections::NORTH_WEST,
-            KnightDirections::SOUTH_EAST,
-            KnightDirections::SOUTH_WEST,
-            KnightDirections::EAST_NORTH,
-            KnightDirections::EAST_SOUTH,
-            KnightDirections::WEST_NORTH,
-            KnightDirections::WEST_SOUTH,
+        KnightDirections::NORTH_EAST,
+        KnightDirections::NORTH_WEST,
+        KnightDirections::SOUTH_EAST,
+        KnightDirections::SOUTH_WEST,
+        KnightDirections::EAST_NORTH,
+        KnightDirections::EAST_SOUTH,
+        KnightDirections::WEST_NORTH,
+        KnightDirections::WEST_SOUTH,
     ];
 
     #[inline]
@@ -82,7 +85,7 @@ impl KnightDirections {
         let NOT_FILE_GH = !(FILE_MASKS[Files::G as usize] | FILE_MASKS[Files::H as usize]);
         match self {
             KnightDirections::NORTH_EAST => (bb & NOT_FILE_H) << NORTH_EAST,
-            KnightDirections::NORTH_WEST => (bb & NOT_FILE_A ) << NORTH_WEST,
+            KnightDirections::NORTH_WEST => (bb & NOT_FILE_A) << NORTH_WEST,
             KnightDirections::SOUTH_EAST => (bb & NOT_FILE_H) >> SOUTH_EAST,
             KnightDirections::SOUTH_WEST => (bb & NOT_FILE_A) >> SOUTH_WEST,
             KnightDirections::EAST_NORTH => (bb & NOT_FILE_GH) << EAST_NORTH,

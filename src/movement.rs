@@ -64,7 +64,7 @@ impl MovementData {
 impl MovementData {
     fn init_king_attacks(&mut self) -> () {
         for (square_idx, king_attack_entry) in self.king_attacks.iter_mut().enumerate() {
-            *king_attack_entry =  get_king_attacks(square_idx);
+            *king_attack_entry = get_king_attacks(square_idx);
         }
     }
 
@@ -73,6 +73,7 @@ impl MovementData {
             *knight_attack = get_knight_attacks(square_idx);
         }
     }
+
     fn init_rook_attacks(&mut self) -> Result<(), MovementDataInitError> {
         for (square_idx, &magic_entry) in ROOK_MAGICS.iter().enumerate() {
             let square_coord = SquareCoord::try_from(square_idx as u8).unwrap();
