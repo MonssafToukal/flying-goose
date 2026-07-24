@@ -2,14 +2,14 @@ mod nonsliders;
 pub mod sliders;
 use std::fmt::Display;
 
-use nonsliders::{get_king_attacks, get_knight_attacks};
+use nonsliders::{get_king_attacks, get_knight_attacks, get_pawn_attacks};
 use sliders::{
     defs::{BISHOP_SLIDER, ROOK_SLIDER, get_all_blockers_subsets},
     magic_entries::{BISHOP_MAGICS, ROOK_MAGICS},
     magics::{MAX_BISHOP_TABLE_SIZE, MAX_ROOK_TABLE_SIZE},
 };
 
-use crate::types::EMPTY_BITBOARD;
+use crate::{board::types::Sides, types::EMPTY_BITBOARD};
 use crate::{
     board::types::SquareCoord,
     types::{BitBoard, NumOf},
@@ -38,6 +38,7 @@ impl Display for MovementDataInitError {
 pub struct MovementData {
     pub king_attacks: [BitBoard; NumOf::SQUARES],
     pub knight_attacks: [BitBoard; NumOf::SQUARES],
+    pub pawn_attacks: [[BitBoard; NumOf::SQUARES]; Sides::BOTH],
     pub rook_attacks: Vec<BitBoard>,
     pub bishop_attacks: Vec<BitBoard>,
 }
@@ -47,6 +48,7 @@ impl MovementData {
         Self {
             king_attacks: [EMPTY_BITBOARD; NumOf::SQUARES],
             knight_attacks: [EMPTY_BITBOARD; NumOf::SQUARES],
+            pawn_attacks: [[EMPTY_BITBOARD; NumOf::SQUARES]; Sides::BOTH],
             rook_attacks: vec![EMPTY_BITBOARD; MAX_ROOK_TABLE_SIZE],
             bishop_attacks: vec![EMPTY_BITBOARD; MAX_BISHOP_TABLE_SIZE],
         }
@@ -55,6 +57,7 @@ impl MovementData {
     pub fn init(&mut self) -> Result<(), MovementDataInitError> {
         self.init_king_attacks();
         self.init_knight_attacks();
+        self.init_pawn_attacks();
         self.init_rook_attacks()?;
         self.init_bishop_attacks()?;
         Ok(())
@@ -71,6 +74,15 @@ impl MovementData {
     fn init_knight_attacks(&mut self) -> () {
         for (square_idx, knight_attack) in self.knight_attacks.iter_mut().enumerate() {
             *knight_attack = get_knight_attacks(square_idx);
+        }
+    }
+
+    fn init_pawn_attacks(&mut self) -> () {
+        for square_idx in 0..NumOf::SQUARES {
+            self.pawn_attacks[Sides::WHITE][square_idx] =
+                get_pawn_attacks(square_idx, Sides::WHITE);
+            self.pawn_attacks[Sides::BLACK][square_idx] =
+                get_pawn_attacks(square_idx, Sides::BLACK);
         }
     }
 

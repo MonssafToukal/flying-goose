@@ -1,12 +1,12 @@
 use crate::{
-    board::types::{Files, Square},
-    types::{BitBoard, EMPTY_BITBOARD, FILE_MASKS, NumOf, RANK_MASKS, SQUARE_MASKS},
+    board::types::{Files, Side, Sides, Square},
+    types::{BitBoard, EMPTY_BITBOARD, FILE_MASKS, NumOf, RANK_MASKS, SQUARE_MASKS, print_bb},
 };
 
 #[repr(u8)]
 pub enum KingDirections {
-    NORTH,
-    SOUTH,
+    North,
+    South,
     EAST,
     WEST,
 }
@@ -19,13 +19,13 @@ impl KingDirections {
     // pub const _WEST_SHIFT: i8 = -1;
 
     fn shift(&self, bb: BitBoard) -> BitBoard {
-        let _NORTH_SHIFT = 8;
-        let _SOUTH_SHIFT = 8;
-        let _EAST_SHIFT = 1;
-        let _WEST_SHIFT = 1;
+        const _NORTH_SHIFT: u8 = 8;
+        const _SOUTH_SHIFT: u8 = 8;
+        const _EAST_SHIFT: u8 = 1;
+        const _WEST_SHIFT: u8 = 1;
         match self {
-            KingDirections::NORTH => bb << _NORTH_SHIFT,
-            KingDirections::SOUTH => bb >> _SOUTH_SHIFT,
+            KingDirections::North => bb << _NORTH_SHIFT,
+            KingDirections::South => bb >> _SOUTH_SHIFT,
             KingDirections::EAST => bb << _EAST_SHIFT,
             KingDirections::WEST => bb >> _WEST_SHIFT,
         }
@@ -36,14 +36,14 @@ impl KingDirections {
 // e.g SouthEast => 2 squares down and one square right
 #[derive(Debug)]
 pub enum KnightDirections {
-    NORTH_EAST,
-    NORTH_WEST,
-    SOUTH_EAST,
-    SOUTH_WEST,
-    EAST_NORTH,
-    EAST_SOUTH,
-    WEST_NORTH,
-    WEST_SOUTH,
+    NorthEast,
+    NorthWest,
+    SouthEast,
+    SouthWest,
+    EastNorth,
+    EastSouth,
+    WestNorth,
+    WestSouth,
 }
 
 impl KnightDirections {
@@ -58,42 +58,95 @@ impl KnightDirections {
     // const _WEST_SOUTH: i8 = -10;
 
     const ALL: [Self; 8] = [
-        KnightDirections::NORTH_EAST,
-        KnightDirections::NORTH_WEST,
-        KnightDirections::SOUTH_EAST,
-        KnightDirections::SOUTH_WEST,
-        KnightDirections::EAST_NORTH,
-        KnightDirections::EAST_SOUTH,
-        KnightDirections::WEST_NORTH,
-        KnightDirections::WEST_SOUTH,
+        KnightDirections::NorthEast,
+        KnightDirections::NorthWest,
+        KnightDirections::SouthEast,
+        KnightDirections::SouthWest,
+        KnightDirections::EastNorth,
+        KnightDirections::EastSouth,
+        KnightDirections::WestNorth,
+        KnightDirections::WestSouth,
     ];
 
     #[inline]
     fn shift(&self, bb: BitBoard) -> BitBoard {
-        let NORTH_EAST: i8 = 17;
-        let NORTH_WEST: i8 = 15;
-        let SOUTH_EAST: i8 = 15;
-        let SOUTH_WEST: i8 = 17;
-        let EAST_NORTH: i8 = 10;
-        let EAST_SOUTH: i8 = 6;
-        let WEST_NORTH: i8 = 6;
-        let WEST_SOUTH: i8 = 10;
+        const NORTH_EAST: u8 = 17;
+        const NORTH_WEST: u8 = 15;
+        const SOUTH_EAST: u8 = 15;
+        const SOUTH_WEST: u8 = 17;
+        const EAST_NORTH: u8 = 10;
+        const EAST_SOUTH: u8 = 6;
+        const WEST_NORTH: u8 = 6;
+        const WEST_SOUTH: u8 = 10;
 
-        let NOT_FILE_A = !(FILE_MASKS[Files::A as usize]);
-        let NOT_FILE_H = !(FILE_MASKS[Files::H as usize]);
-        let NOT_FILE_AB = !(FILE_MASKS[Files::A as usize] | FILE_MASKS[Files::B as usize]);
-        let NOT_FILE_GH = !(FILE_MASKS[Files::G as usize] | FILE_MASKS[Files::H as usize]);
+        const NOT_FILE_A: BitBoard = !(FILE_MASKS[Files::A as usize]);
+        const NOT_FILE_H: BitBoard = !(FILE_MASKS[Files::H as usize]);
+        const NOT_FILE_AB: BitBoard =
+            !(FILE_MASKS[Files::A as usize] | FILE_MASKS[Files::B as usize]);
+        const NOT_FILE_GH: BitBoard =
+            !(FILE_MASKS[Files::G as usize] | FILE_MASKS[Files::H as usize]);
         match self {
-            KnightDirections::NORTH_EAST => (bb & NOT_FILE_H) << NORTH_EAST,
-            KnightDirections::NORTH_WEST => (bb & NOT_FILE_A) << NORTH_WEST,
-            KnightDirections::SOUTH_EAST => (bb & NOT_FILE_H) >> SOUTH_EAST,
-            KnightDirections::SOUTH_WEST => (bb & NOT_FILE_A) >> SOUTH_WEST,
-            KnightDirections::EAST_NORTH => (bb & NOT_FILE_GH) << EAST_NORTH,
-            KnightDirections::EAST_SOUTH => (bb & NOT_FILE_GH) >> EAST_SOUTH,
-            KnightDirections::WEST_NORTH => (bb & NOT_FILE_AB) << WEST_NORTH,
-            KnightDirections::WEST_SOUTH => (bb & NOT_FILE_AB) >> WEST_SOUTH,
+            KnightDirections::NorthEast => (bb & NOT_FILE_H) << NORTH_EAST,
+            KnightDirections::NorthWest => (bb & NOT_FILE_A) << NORTH_WEST,
+            KnightDirections::SouthEast => (bb & NOT_FILE_H) >> SOUTH_EAST,
+            KnightDirections::SouthWest => (bb & NOT_FILE_A) >> SOUTH_WEST,
+            KnightDirections::EastNorth => (bb & NOT_FILE_GH) << EAST_NORTH,
+            KnightDirections::EastSouth => (bb & NOT_FILE_GH) >> EAST_SOUTH,
+            KnightDirections::WestNorth => (bb & NOT_FILE_AB) << WEST_NORTH,
+            KnightDirections::WestSouth => (bb & NOT_FILE_AB) >> WEST_SOUTH,
         }
     }
+}
+
+enum PawnDirections {
+    NorthEast,
+    NorthWest,
+    SouthEast,
+    SouthWest,
+}
+
+impl PawnDirections {
+    const ALL: [PawnDirections; 4] = [
+        PawnDirections::NorthEast,
+        PawnDirections::NorthWest,
+        PawnDirections::SouthEast,
+        PawnDirections::SouthWest,
+    ];
+
+    fn shift(&self, bb: BitBoard, side: Side) -> Option<BitBoard> {
+        const NORTH_EAST: u8 = 9;
+        const NORTH_WEST: u8 = 7;
+        const SOUTH_EAST: u8 = 7;
+        const SOUTH_WEST: u8 = 9;
+        const NOT_FILE_A: BitBoard = !FILE_MASKS[Files::A as usize];
+        const NOT_FILE_H: BitBoard = !FILE_MASKS[Files::H as usize];
+        if side == Sides::WHITE {
+            match self {
+                PawnDirections::NorthEast => Some((bb & NOT_FILE_H) << NORTH_EAST),
+                PawnDirections::NorthWest => Some((bb & NOT_FILE_A) << NORTH_WEST),
+                _ => None,
+            }
+        } else if side == Sides::BLACK {
+            match self {
+                PawnDirections::SouthEast => Some((bb & NOT_FILE_H) >> SOUTH_EAST),
+                PawnDirections::SouthWest => Some((bb & NOT_FILE_A) >> SOUTH_WEST),
+                _ => None,
+            }
+        } else {
+            None
+        }
+    }
+}
+
+pub fn get_pawn_attacks(square_idx: Square, color: Side) -> BitBoard {
+    let pawn_position = SQUARE_MASKS[square_idx];
+    let mut pawn_attack = EMPTY_BITBOARD;
+    PawnDirections::ALL.iter().for_each(|d| {
+        if let Some(attack) = d.shift(pawn_position, color) {
+            pawn_attack |= attack;
+        }
+    });
+    pawn_attack
 }
 
 pub fn get_knight_attacks(knight_square_idx: Square) -> BitBoard {
@@ -115,10 +168,10 @@ pub fn get_king_attacks(king_square_idx: Square) -> BitBoard {
     let mut king_attacks = get_king_attacks_east_west(king_position);
 
     // North direction:
-    king_attacks |= KingDirections::NORTH.shift(king_position & NOT_RANK_8);
+    king_attacks |= KingDirections::North.shift(king_position & NOT_RANK_8);
 
     // South direction:
-    king_attacks |= KingDirections::SOUTH.shift(king_position & NOT_RANK_1);
+    king_attacks |= KingDirections::South.shift(king_position & NOT_RANK_1);
 
     king_attacks
 }
