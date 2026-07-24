@@ -1,5 +1,5 @@
-use crate::board::types::{CastlingState, Sides, Square};
 use crate::board::types::CastlingRight;
+use crate::board::types::{CastlingState, Sides, Square};
 use crate::board::zobrist::ZobristKey;
 
 #[derive(Clone, Copy, Debug)]

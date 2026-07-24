@@ -1,13 +1,11 @@
+use crate::board::types::Sides;
 use crate::{
     board::{
         Board,
-        types::{
-            CastlingRight, FIFTY_MOVE_RULE, Files, MAX_GAME_MOVES, Pieces, Ranks,
-        },
+        types::{CastlingRight, FIFTY_MOVE_RULE, Files, MAX_GAME_MOVES, Pieces, Ranks},
     },
     types::{NumOf, SQUARE_MASKS},
 };
-use crate::board::types::Sides;
 use std::fmt::Display;
 
 type FenParseFunc = fn(board: &mut Board, part: &str) -> Result<(), FenError>;
