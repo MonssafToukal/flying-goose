@@ -46,10 +46,10 @@ impl Sides {
 
 #[repr(u8)]
 pub enum CastlingRight {
-    WhiteKingSide = 1,
-    WhiteQueenSide = 2,
-    BlackKingSide = 4,
-    BlackQueenSide = 8,
+    WhiteKingSide = 0x01,
+    WhiteQueenSide = 0x02,
+    BlackKingSide = 0x04,
+    BlackQueenSide = 0x08,
 }
 
 #[derive(Debug, PartialEq, Clone, Copy, TryFromPrimitive)]
