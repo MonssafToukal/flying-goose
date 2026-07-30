@@ -37,3 +37,26 @@ impl Board {
         self.game_state.zobrist_key ^= self.zobrist_hashmap.enpassant(file);
     }
 }
+
+#[derive(Clone, Copy)]
+pub struct Move(u16);
+
+impl Move {
+    const FROM_SQUARE_MASK: u16 = 0x003F;
+    const TO_SQUARE_MASK: u16 = 0x003F;
+    const TO_SQUARE_BIT_SHIFT: u8 = 6;
+    const FLAGS_MASK: u16 = 0x0F;
+    const FLAGS_BIT_SHIFT: u8 = 12;
+
+    pub fn from_square(&self) -> Square {
+        (self.0 & Self::FROM_SQUARE_MASK) as Square
+    }
+
+    pub fn to_square(&self) -> Square {
+        ((self.0 >> Self::TO_SQUARE_BIT_SHIFT) & Self::TO_SQUARE_MASK) as Square
+    }
+
+    pub fn flags(&self) -> u8 {
+        ((self.0 >> Self::FLAGS_BIT_SHIFT) & Self::FLAGS_MASK) as u8
+    }
+}

@@ -23,7 +23,7 @@ impl GameState {
             enpassant: None,
             active_color: Sides::WHITE as u8,
             half_move_clock: 0,
-            fullmove_counter: 0,
+            fullmove_counter: 1,
             zobrist_key: 0,
         }
     }
@@ -36,5 +36,15 @@ impl GameState {
     }
     pub fn clear_enpassant(&mut self) {
         self.enpassant = None;
+    }
+
+    #[inline]
+    pub fn has_right(&self, right: CastlingRight) -> bool {
+        self.castling & (right as u8) != 0
+    }
+
+    #[inline]
+    pub fn toggle_side(&mut self) {
+        self.active_color ^= 1;
     }
 }
