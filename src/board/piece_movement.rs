@@ -42,21 +42,59 @@ impl Board {
 pub struct Move(u16);
 
 impl Move {
-    const FROM_SQUARE_MASK: u16 = 0x003F;
-    const TO_SQUARE_MASK: u16 = 0x003F;
     const TO_SQUARE_BIT_SHIFT: u8 = 6;
-    const FLAGS_MASK: u16 = 0x0F;
     const FLAGS_BIT_SHIFT: u8 = 12;
+    const FROM_SQUARE_MASK: u16 = 0x003F;
+    const TO_SQUARE_MASK: u16 = 0x003F << Self::TO_SQUARE_BIT_SHIFT;
+    const FLAGS_MASK: u16 = 0x0F << Self::FLAGS_BIT_SHIFT;
 
     pub fn from_square(&self) -> Square {
         (self.0 & Self::FROM_SQUARE_MASK) as Square
     }
 
     pub fn to_square(&self) -> Square {
-        ((self.0 >> Self::TO_SQUARE_BIT_SHIFT) & Self::TO_SQUARE_MASK) as Square
+        (self.0  & Self::TO_SQUARE_MASK) as Square
     }
 
-    pub fn flags(&self) -> u8 {
-        ((self.0 >> Self::FLAGS_BIT_SHIFT) & Self::FLAGS_MASK) as u8
+    pub fn flags(&self) -> MoveFlag {
+        match (self.0 & Self::FLAGS_MASK) as u8 {
+            0b0000 => MoveFlag::Quiet,
+            0b0001 => MoveFlag::DoublePawnPush,
+            0b0010 => MoveFlag::KingSideCastle,
+            0b0011 => MoveFlag::QueenSideCastle,
+            0b0100 => MoveFlag::Capture,
+            0b0101 => MoveFlag::EpCapture,
+            0b0110 => unreachable!(),
+            0b0111 => unreachable!(),
+            0b1000 => MoveFlag::KnightPromotion,
+            0b1001 => MoveFlag::BishopPromotion,
+            0b1010 => MoveFlag::RookPromotion,
+            0b1011 => MoveFlag::QueenPromotion,
+            0b1100 => MoveFlag::KnightCapturePromotion,
+            0b1101 => MoveFlag::BishopCapturePromotion,
+            0b1110 => MoveFlag::RookCapturePromotion,
+            0b1111 => MoveFlag::QueenCapturePromotion,
+            _ => unreachable!(),
+        }
     }
+}
+
+
+#[repr(u8)]
+#[derive(Clone, Copy, Debug)]
+pub enum MoveFlag {
+    Quiet = 0b0000,
+    DoublePawnPush = 0b0001,
+    KingSideCastle = 0b0010,
+    QueenSideCastle = 0b0011,
+    Capture = 0b0100,
+    EpCapture = 0b0101,
+    KnightPromotion = 0b1000,
+    BishopPromotion = 0b1001,
+    RookPromotion = 0b1010,
+    QueenPromotion = 0b1011,
+    KnightCapturePromotion = 0b1100,
+    BishopCapturePromotion = 0b1101,
+    RookCapturePromotion = 0b1110,
+    QueenCapturePromotion = 0b1111,
 }
