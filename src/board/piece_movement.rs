@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::{
     board::{
         Board,
@@ -56,32 +58,14 @@ impl Move {
         (self.0  & Self::TO_SQUARE_MASK) as Square
     }
 
-    pub fn flags(&self) -> MoveFlag {
-        match (self.0 & Self::FLAGS_MASK) as u8 {
-            0b0000 => MoveFlag::Quiet,
-            0b0001 => MoveFlag::DoublePawnPush,
-            0b0010 => MoveFlag::KingSideCastle,
-            0b0011 => MoveFlag::QueenSideCastle,
-            0b0100 => MoveFlag::Capture,
-            0b0101 => MoveFlag::EpCapture,
-            0b0110 => unreachable!(),
-            0b0111 => unreachable!(),
-            0b1000 => MoveFlag::KnightPromotion,
-            0b1001 => MoveFlag::BishopPromotion,
-            0b1010 => MoveFlag::RookPromotion,
-            0b1011 => MoveFlag::QueenPromotion,
-            0b1100 => MoveFlag::KnightCapturePromotion,
-            0b1101 => MoveFlag::BishopCapturePromotion,
-            0b1110 => MoveFlag::RookCapturePromotion,
-            0b1111 => MoveFlag::QueenCapturePromotion,
-            _ => unreachable!(),
-        }
+    pub fn flags(&self) -> Result<MoveFlag, InvalidMoveFlag> {
+        let move_flag_values = (self.0 & Self::FLAGS_MASK) as u8;
+        MoveFlag::try_from(move_flag_values)
     }
 }
 
-
 #[repr(u8)]
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum MoveFlag {
     Quiet = 0b0000,
     DoublePawnPush = 0b0001,
@@ -98,3 +82,40 @@ pub enum MoveFlag {
     RookCapturePromotion = 0b1110,
     QueenCapturePromotion = 0b1111,
 }
+
+impl TryFrom<u8> for MoveFlag {
+    type Error = InvalidMoveFlag;
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+            0b0000 => Ok(MoveFlag::Quiet),
+            0b0001 => Ok(MoveFlag::DoublePawnPush),
+            0b0010 => Ok(MoveFlag::KingSideCastle),
+            0b0011 => Ok(MoveFlag::QueenSideCastle),
+            0b0100 => Ok(MoveFlag::Capture),
+            0b0101 => Ok(MoveFlag::EpCapture),
+            0b0110 => Err(Self::Error{invalid_flag_state:  value}),
+            0b0111 => Err(Self::Error{invalid_flag_state:  value}),
+            0b1000 => Ok(MoveFlag::KnightPromotion),
+            0b1001 => Ok(MoveFlag::BishopPromotion),
+            0b1010 => Ok(MoveFlag::RookPromotion),
+            0b1011 => Ok(MoveFlag::QueenPromotion),
+            0b1100 => Ok(MoveFlag::KnightCapturePromotion),
+            0b1101 => Ok(MoveFlag::BishopCapturePromotion),
+            0b1110 => Ok(MoveFlag::RookCapturePromotion),
+            0b1111 => Ok(MoveFlag::QueenCapturePromotion),
+            _ => Err(Self::Error{invalid_flag_state: value}),
+        }
+    }
+}
+
+
+pub struct InvalidMoveFlag {
+    invalid_flag_state: u8,
+}
+
+impl Display for InvalidMoveFlag {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Invalid movement state found: {}", self.invalid_flag_state)
+    }
+}
+
