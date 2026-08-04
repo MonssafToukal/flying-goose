@@ -1,3 +1,4 @@
+use crate::board::Piece;
 use crate::board::types::CastlingRight;
 use crate::board::types::{CastlingState, Sides, Square};
 use crate::board::zobrist::ZobristKey;
@@ -5,6 +6,7 @@ use crate::board::zobrist::ZobristKey;
 #[derive(Clone, Copy, Debug)]
 pub struct GameState {
     pub castling: CastlingState,
+    pub captured_piece: Option<Piece>,
     pub enpassant: Option<Square>,
     pub active_color: u8,
     pub half_move_clock: u8,
@@ -21,6 +23,7 @@ impl GameState {
         GameState {
             castling: castling_state,
             enpassant: None,
+            captured_piece: None,
             active_color: Sides::WHITE as u8,
             half_move_clock: 0,
             fullmove_counter: 1,

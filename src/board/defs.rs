@@ -11,6 +11,7 @@ impl Board {
     pub fn get_pieces(&self, side: Side, piece: Piece) -> BitBoard {
         return self.bb_pieces[side][piece];
     }
+
     pub fn get_piece_list(&self) -> [Piece; NumOf::SQUARES] {
         let mut piece_list = [Pieces::NONE; NumOf::SQUARES];
         let white_bbs = self.bb_pieces[Sides::WHITE];

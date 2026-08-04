@@ -25,10 +25,19 @@ impl GameHistory {
         self.moves[self.count] = game_state;
         self.count += 1;
     }
+
     pub fn get(&self, index: usize) -> &GameState {
         debug_assert!(index < self.count);
         &self.moves[index]
     }
+
+    pub fn get_last(&self) -> Option<&GameState> {
+        if self.count == 0 {
+            return None;
+        }
+        Some(&self.moves[self.count - 1])
+    }
+
     pub fn len(&self) -> usize {
         self.count
     }
