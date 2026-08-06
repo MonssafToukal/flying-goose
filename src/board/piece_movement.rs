@@ -3,7 +3,6 @@ use std::fmt::Display;
 use crate::{
     board::{
         Board,
-        state::GameState,
         types::{Piece, Pieces, Side, Square},
     },
     types::SQUARE_MASKS,
@@ -11,14 +10,41 @@ use crate::{
 
 impl Board {
     pub fn make(&mut self, chess_move: Move) -> () {
-        let mut new_game_state = self.game_state.clone();
-        new_game_state.toggle_side();
+        let mut new_game_state = self.game_state;
         let from_square: Square = chess_move.from_square();
         let dest_square: Square = chess_move.dest_square();
         // TODO: handle this better than with unwrap
         let move_flags = chess_move.flags().unwrap();
+        // get captured piece if there is any
+        match move_flags {
+            MoveFlag::Capture
+            | MoveFlag::EpCapture
+            | MoveFlag::KnightCapturePromotion
+            | MoveFlag::BishopCapturePromotion
+            | MoveFlag::RookCapturePromotion
+            | MoveFlag::QueenCapturePromotion => {
+                let captured_piece: Piece = self.piece_list[dest_square];
+                new_game_state.captured_piece = Some(captured_piece);
+                self.remove_piece(captured_piece, ^new_game_state.active_color, square_idx);
+                // TODO: finish this
+            }
+            _ => {}
+        }
 
+        // get promotion
+        let promoted_piece: Piece = match move_flags {
+            MoveFlag::KnightPromotion => Pieces::KNIGHT,
+            MoveFlag::BishopPromotion => Pieces::BISHOP,
+            MoveFlag::RookPromotion => Pieces::ROOK,
+            MoveFlag::QueenPromotion => Pieces::QUEEN,
+            MoveFlag::KnightCapturePromotion => Pieces::KNIGHT,
+            MoveFlag::BishopCapturePromotion => Pieces::BISHOP,
+            MoveFlag::RookCapturePromotion => Pieces::ROOK,
+            MoveFlag::QueenCapturePromotion => Pieces::QUEEN,
+            _ => Pieces::NONE,
+        };
 
+        new_game_state.toggle_side();
         todo!()
     }
 
