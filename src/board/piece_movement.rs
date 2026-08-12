@@ -3,9 +3,10 @@ use std::fmt::Display;
 use crate::{
     board::{
         Board,
-        types::{Piece, Pieces, Side, Square},
+        state::GameState,
+        types::{Piece, Pieces, Side, Sides, Square},
     },
-    types::SQUARE_MASKS,
+    types::{NumOf, SQUARE_MASKS},
 };
 
 impl Board {
@@ -13,6 +14,7 @@ impl Board {
         let mut new_game_state = self.game_state;
         let from_square: Square = chess_move.from_square();
         let dest_square: Square = chess_move.dest_square();
+        let moved_piece: Piece = self.piece_list[from_square];
         // TODO: handle this better than with unwrap
         let move_flags = chess_move.flags().unwrap();
         // get captured piece if there is any
@@ -31,18 +33,66 @@ impl Board {
             _ => {}
         }
 
-        // get promotion
-        let promoted_piece: Piece = match move_flags {
-            MoveFlag::KnightPromotion => Pieces::KNIGHT,
-            MoveFlag::BishopPromotion => Pieces::BISHOP,
-            MoveFlag::RookPromotion => Pieces::ROOK,
-            MoveFlag::QueenPromotion => Pieces::QUEEN,
-            MoveFlag::KnightCapturePromotion => Pieces::KNIGHT,
-            MoveFlag::BishopCapturePromotion => Pieces::BISHOP,
-            MoveFlag::RookCapturePromotion => Pieces::ROOK,
-            MoveFlag::QueenCapturePromotion => Pieces::QUEEN,
-            _ => Pieces::NONE,
-        };
+        // compute captured_piece
+        match move_flags {
+            MoveFlag::Capture
+            | MoveFlag::EpCapture
+            | MoveFlag::KnightCapturePromotion
+            | MoveFlag::BishopCapturePromotion
+            | MoveFlag::RookCapturePromotion
+            | MoveFlag::QueenCapturePromotion => {
+                let captured_piece: Piece = self.piece_list[dest_square];
+                let captured_piece_color: Side = (self.game_state.active_color ^ 1) as Side;
+                new_game_state.captured_piece = Some(captured_piece);
+                self.remove_piece(captured_piece, captured_piece_color, dest_square);
+                self.put_piece(
+                    moved_piece,
+                    self.game_state.active_color as Side,
+                    dest_square,
+                );
+            }
+            _ => {}
+        }
+
+        // Promotions
+        match move_flags {
+            MoveFlag::KnightPromotion | MoveFlag::KnightCapturePromotion => {
+                self.put_piece(Pieces::KNIGHT, self.game_state.active_color as Side , dest_square);
+            }
+            MoveFlag::BishopPromotion | MoveFlag::BishopCapturePromotion => {
+                self.put_piece(Pieces::BISHOP, self.game_state.active_color as Side , dest_square);
+            }
+            MoveFlag::RookPromotion | MoveFlag::RookCapturePromotion => {
+                self.put_piece(Pieces::ROOK, self.game_state.active_color as Side , dest_square);
+            }
+            MoveFlag::QueenPromotion | MoveFlag::QueenCapturePromotion => {
+                self.put_piece(Pieces::QUEEN, self.game_state.active_color as Side , dest_square);
+            }
+            _ => {}
+        }
+
+        // Enpassant
+        match move_flags {
+            MoveFlag::DoublePawnPush => {
+
+                let mut enpassant_square: Square = dest_square;
+                if new_game_state.active_color as Side == Sides::WHITE {
+                    enpassant_square -= NumOf::FILES;
+                }
+
+                if new_game_state.active_color as Side == Sides::BLACK {
+                    enpassant_square += NumOf::FILES;
+                }
+                new_game_state.set_enpassant(enpassant_square);
+                self.put_piece(moved_piece, self.game_state.active_color as Side, dest_square);
+            },
+            MoveFlag::EpCapture => {
+                let enpassant_square: Square = self.game_state.enpassant.expect("enpassant square not set while move is enpassant capture");
+
+            },
+            _ => {},
+        }
+>>>>>>> Stashed changes
 
         new_game_state.toggle_side();
         todo!()

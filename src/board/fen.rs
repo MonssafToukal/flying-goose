@@ -160,8 +160,8 @@ pub fn fen_parse_pieces(board: &mut Board, part: &str) -> Result<(), FenError> {
 // TODO: Write unit test for this
 pub fn fen_parse_colour(board: &mut Board, part: &str) -> Result<(), FenError> {
     match part {
-        "w" => board.game_state.active_color = Sides::WHITE as u8,
-        "b" => board.game_state.active_color = Sides::BLACK as u8,
+        "w" => board.game_state.active_color = Sides::WHITE,
+        "b" => board.game_state.active_color = Sides::BLACK,
         _ => return Err(FenError::SidePart),
     }
     Ok(())

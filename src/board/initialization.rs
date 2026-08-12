@@ -72,7 +72,7 @@ impl Board {
             let enpassant_file = (enpassant_square % NumOf::FILES) as usize;
             key ^= self.zobrist_hashmap.enpassant(enpassant_file);
         }
-        if self.game_state.active_color == Sides::BLACK as u8 {
+        if self.game_state.active_color == Sides::BLACK {
             key ^= self.zobrist_hashmap.side();
         }
         key
