@@ -4,7 +4,7 @@ pub mod movement;
 pub mod types;
 
 use crate::board::types::SquareCoord;
-use board::types::Sides;
+use board::types::Side;
 use movement::{
     MovementData, MovementDataInitError,
     sliders::{
@@ -66,12 +66,11 @@ fn main() -> Result<(), MovementDataInitError> {
     //     println!();
     // }
     //
-    for color in 0..Sides::BOTH {
-        if color == Sides::WHITE {
-            println!("WHITE PAWNS");
-        }
-        if color == Sides::BLACK {
-            println!("BLACK PAWNS");
+    for color in 0..NumOf::SIDES {
+        let color = Side::from(color);
+        match color {
+            Side::White => println!("WHITE PAWNS"),
+            Side::Black => println!("BLACK PAWNS"),
         }
         for square_idx in 0..NumOf::SQUARES {
             print_boards_side_by_side(

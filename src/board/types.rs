@@ -1,4 +1,7 @@
-use std::fmt::Display;
+use std::{
+    fmt::Display,
+    ops::{Index, IndexMut},
+};
 
 use crate::types::NumOf;
 use num_enum::TryFromPrimitive;
@@ -10,7 +13,6 @@ pub const FIFTY_MOVE_RULE: u8 = 100;
 
 pub type Piece = usize;
 pub type Square = usize;
-pub type Side = usize;
 pub type CastlingState = u8;
 
 #[repr(usize)]
@@ -93,11 +95,70 @@ impl Pieces {
     pub const NONE: Piece = 6;
 }
 
-pub struct Sides;
-impl Sides {
-    pub const WHITE: Side = 0;
-    pub const BLACK: Side = 1;
-    pub const BOTH: Side = 2;
+pub struct IndexedBySide<T>([T; NumOf::SIDES]);
+impl<T> IndexedBySide<T>
+where
+    T: Copy,
+{
+    pub fn new(value: T) -> Self {
+        Self([value; NumOf::SIDES])
+    }
+}
+
+impl<T> Index<Side> for IndexedBySide<T> {
+    type Output = T;
+
+    #[inline(always)]
+    fn index(&self, index: Side) -> &Self::Output {
+        &self.0[index as usize]
+    }
+}
+
+impl<T> IndexMut<Side> for IndexedBySide<T> {
+    #[inline(always)]
+    fn index_mut(&mut self, index: Side) -> &mut Self::Output {
+        &mut self.0[index as usize]
+    }
+}
+
+#[repr(usize)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
+pub enum Side {
+    Black = 0x00,
+    White = 0x01,
+}
+
+impl From<usize> for Side {
+    fn from(value: usize) -> Self {
+        match value {
+            0 => Side::Black,
+            1 => Side::White,
+            _ => panic!(
+                "unable to  convert usize value {} to Side enum variant",
+                value
+            ),
+        }
+    }
+}
+
+impl Side {
+    #[inline(always)]
+    pub fn other(&self) -> Self {
+        match self {
+            Side::Black => Side::White,
+            Side::White => Side::Black,
+        }
+    }
+
+    #[inline(always)]
+    pub fn toggle_mut(&mut self) {
+        *self = self.other();
+    }
+
+    #[inline(always)]
+    pub fn u8(&self) -> u8 {
+        *self as u8
+    }
 }
 
 #[repr(u8)]
@@ -108,6 +169,7 @@ pub enum CastlingRight {
     BlackQueenSide = 0x08,
 }
 
+// TODO: replace tryfrom primitive with from instead like Side enum
 #[derive(Debug, PartialEq, Clone, Copy, TryFromPrimitive)]
 #[repr(u8)]
 pub enum Files {

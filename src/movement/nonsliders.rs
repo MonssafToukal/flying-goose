@@ -1,5 +1,5 @@
 use crate::{
-    board::types::{Files, Side, Sides, Square},
+    board::types::{Files, Side, Square},
     types::{BitBoard, EMPTY_BITBOARD, FILE_MASKS, NumOf, RANK_MASKS, SQUARE_MASKS},
 };
 
@@ -120,20 +120,17 @@ impl PawnDirections {
         const SOUTH_WEST: u8 = 9;
         const NOT_FILE_A: BitBoard = !FILE_MASKS[Files::A as usize];
         const NOT_FILE_H: BitBoard = !FILE_MASKS[Files::H as usize];
-        if side == Sides::WHITE {
-            match self {
-                PawnDirections::NorthEast => Some((bb & NOT_FILE_H) << NORTH_EAST),
-                PawnDirections::NorthWest => Some((bb & NOT_FILE_A) << NORTH_WEST),
-                _ => None,
-            }
-        } else if side == Sides::BLACK {
-            match self {
+        match side {
+            Side::Black => match self {
                 PawnDirections::SouthEast => Some((bb & NOT_FILE_H) >> SOUTH_EAST),
                 PawnDirections::SouthWest => Some((bb & NOT_FILE_A) >> SOUTH_WEST),
                 _ => None,
-            }
-        } else {
-            None
+            },
+            Side::White => match self {
+                PawnDirections::NorthEast => Some((bb & NOT_FILE_H) << NORTH_EAST),
+                PawnDirections::NorthWest => Some((bb & NOT_FILE_A) << NORTH_WEST),
+                _ => None,
+            },
         }
     }
 }

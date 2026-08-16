@@ -8,7 +8,7 @@ pub mod types;
 pub mod zobrist;
 
 use crate::{
-    board::types::{Piece, Sides},
+    board::types::Piece,
     types::{BitBoard, NumOf},
 };
 use history::GameHistory;
@@ -17,8 +17,8 @@ use zobrist::Zobrist;
 
 #[derive(Debug, Clone)]
 pub struct Board {
-    pub bb_pieces: [[BitBoard; NumOf::PIECE_TYPES]; Sides::BOTH],
-    pub bb_sides: [BitBoard; Sides::BOTH],
+    pub bb_pieces: [[BitBoard; NumOf::PIECE_TYPES]; NumOf::SIDES],
+    pub bb_sides: [BitBoard; NumOf::SIDES],
     pub piece_list: [Piece; NumOf::SQUARES],
     pub game_state: GameState,
     pub history: GameHistory,

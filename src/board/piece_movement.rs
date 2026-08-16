@@ -3,7 +3,7 @@ use std::fmt::Display;
 use crate::{
     board::{
         Board,
-        types::{Piece, Pieces, SQ, Side, Sides, Square},
+        types::{Piece, Pieces, SQ, Side, Square},
     },
     types::{NumOf, SQUARE_MASKS},
 };
@@ -32,19 +32,19 @@ impl Board {
             | MoveFlag::RookCapturePromotion
             | MoveFlag::QueenCapturePromotion => {
                 let captured_piece: Piece = self.piece_list[dest_square];
-                let captured_piece_color: Side = (self.game_state.active_color ^ 1) as Side;
+                let captured_piece_color: Side = self.get_opponent();
                 prev_game_state.captured_piece = Some(captured_piece);
                 self.remove_piece(captured_piece, captured_piece_color, dest_square);
-            },
+            }
             MoveFlag::EpCapture => {
                 prev_game_state.captured_piece = Some(Pieces::PAWN);
-                let (captured_pawn_square, captured_pawn_color): (Square, Side) = match self.game_state.active_color {
-                    Sides::WHITE => (dest_square - NumOf::FILES, Sides::BLACK),
-                    Sides::BLACK => (dest_square + NumOf::FILES, Sides::WHITE),
-                    _ => unreachable!("error when computing captured_pawn square from Enpassant: invalid active color")
-                };
+                let (captured_pawn_square, captured_pawn_color): (Square, Side) =
+                    match self.game_state.active_color {
+                        Side::White => (dest_square - NumOf::FILES, Side::Black),
+                        Side::Black => (dest_square + NumOf::FILES, Side::White),
+                    };
                 self.remove_piece(Pieces::PAWN, captured_pawn_color, captured_pawn_square);
-            },
+            }
             _ => {}
         }
 
@@ -52,7 +52,12 @@ impl Board {
         self.history.push(prev_game_state);
 
         // Universal move of the moving piece applied here:
-        self.move_piece(moved_piece, self.game_state.active_color, from_square, dest_square);
+        self.move_piece(
+            moved_piece,
+            self.game_state.active_color,
+            from_square,
+            dest_square,
+        );
         // XOR the zobrist hash from enpassant square if it exists:
         if let Some(enpassant_square) = self.game_state.enpassant {
             self.set_enpassant_move(enpassant_square);
@@ -62,19 +67,19 @@ impl Board {
         match move_flags {
             MoveFlag::KnightPromotion | MoveFlag::KnightCapturePromotion => {
                 self.remove_piece(Pieces::PAWN, self.game_state.active_color, dest_square);
-                self.put_piece(Pieces::KNIGHT, self.game_state.active_color , dest_square);
+                self.put_piece(Pieces::KNIGHT, self.game_state.active_color, dest_square);
             }
             MoveFlag::BishopPromotion | MoveFlag::BishopCapturePromotion => {
                 self.remove_piece(Pieces::PAWN, self.game_state.active_color, dest_square);
-                self.put_piece(Pieces::BISHOP, self.game_state.active_color , dest_square);
+                self.put_piece(Pieces::BISHOP, self.game_state.active_color, dest_square);
             }
             MoveFlag::RookPromotion | MoveFlag::RookCapturePromotion => {
                 self.remove_piece(Pieces::PAWN, self.game_state.active_color, dest_square);
-                self.put_piece(Pieces::ROOK, self.game_state.active_color , dest_square);
+                self.put_piece(Pieces::ROOK, self.game_state.active_color, dest_square);
             }
             MoveFlag::QueenPromotion | MoveFlag::QueenCapturePromotion => {
                 self.remove_piece(Pieces::PAWN, self.game_state.active_color, dest_square);
-                self.put_piece(Pieces::QUEEN, self.game_state.active_color , dest_square);
+                self.put_piece(Pieces::QUEEN, self.game_state.active_color, dest_square);
             }
             _ => {}
         }
@@ -83,46 +88,60 @@ impl Board {
         match move_flags {
             MoveFlag::DoublePawnPush => {
                 let mut enpassant_square: Square = dest_square;
-                if self.game_state.active_color as Side == Sides::WHITE {
+                if self.game_state.active_color as Side == Side::White {
                     enpassant_square -= NumOf::FILES;
                 }
-                if self.game_state.active_color as Side == Sides::BLACK {
+                if self.game_state.active_color as Side == Side::Black {
                     enpassant_square += NumOf::FILES;
                 }
                 self.game_state.set_enpassant(enpassant_square);
                 self.set_enpassant_move(enpassant_square);
-            },
+            }
             _ => {
                 self.game_state.clear_enpassant();
-            },
+            }
         }
 
         // Castling:
 
         match move_flags {
-            MoveFlag::KingSideCastle => {
-                match self.game_state.active_color {
-                    Sides::WHITE => {
-                        self.move_piece(Pieces::ROOK, self.game_state.active_color, SQ::H1 as Square, dest_square - 1);
-                    },
-                    Sides::BLACK => {
-                        self.move_piece(Pieces::ROOK, self.game_state.active_color, SQ::H8 as Square, dest_square - 1);
-                    },
-                    _ => panic!("active_color cannot be anything else other than white or black")
+            MoveFlag::KingSideCastle => match self.game_state.active_color {
+                Side::White => {
+                    self.move_piece(
+                        Pieces::ROOK,
+                        self.game_state.active_color,
+                        SQ::H1 as Square,
+                        dest_square - 1,
+                    );
+                }
+                Side::Black => {
+                    self.move_piece(
+                        Pieces::ROOK,
+                        self.game_state.active_color,
+                        SQ::H8 as Square,
+                        dest_square - 1,
+                    );
                 }
             },
-            MoveFlag::QueenSideCastle => {
-                match self.game_state.active_color {
-                    Sides::WHITE => {
-                        self.move_piece(Pieces::ROOK, self.game_state.active_color, SQ::A1 as Square, dest_square + 1);
-                    },
-                    Sides::BLACK => {
-                        self.move_piece(Pieces::ROOK, self.game_state.active_color, SQ::A8 as Square, dest_square + 1);
-                    },
-                    _ => panic!("active_color cannot be anything else other than white or black")
+            MoveFlag::QueenSideCastle => match self.game_state.active_color {
+                Side::White => {
+                    self.move_piece(
+                        Pieces::ROOK,
+                        self.game_state.active_color,
+                        SQ::A1 as Square,
+                        dest_square + 1,
+                    );
+                }
+                Side::Black => {
+                    self.move_piece(
+                        Pieces::ROOK,
+                        self.game_state.active_color,
+                        SQ::A8 as Square,
+                        dest_square + 1,
+                    );
                 }
             },
-            _ => {},
+            _ => {}
         }
         self.game_state.toggle_side();
     }
@@ -131,15 +150,15 @@ impl Board {
         todo!()
     }
     pub fn put_piece(&mut self, piece: Piece, side: Side, square_idx: Square) {
-        self.bb_pieces[side][piece] |= SQUARE_MASKS[square_idx];
-        self.bb_sides[side] |= SQUARE_MASKS[square_idx];
+        self.bb_pieces[side as usize][piece] |= SQUARE_MASKS[square_idx];
+        self.bb_sides[side as usize] |= SQUARE_MASKS[square_idx];
         self.piece_list[square_idx] = piece;
         self.game_state.zobrist_key ^= self.zobrist_hashmap.piece(side, piece, square_idx)
     }
 
     pub fn remove_piece(&mut self, piece: Piece, side: Side, square_idx: Square) {
-        self.bb_pieces[side][piece] &= !SQUARE_MASKS[square_idx];
-        self.bb_sides[side] &= !SQUARE_MASKS[square_idx];
+        self.bb_pieces[side as usize][piece] &= !SQUARE_MASKS[square_idx];
+        self.bb_sides[side as usize] &= !SQUARE_MASKS[square_idx];
         self.piece_list[square_idx] = Pieces::NONE;
         self.game_state.zobrist_key ^= self.zobrist_hashmap.piece(side, piece, square_idx);
     }

@@ -3,7 +3,7 @@ use crate::board::fen::{FEN_PARSE_FUNCS, FenError, fen_split_string};
 use crate::board::history::GameHistory;
 use crate::board::state::GameState;
 use crate::board::{
-    types::{Pieces, Sides},
+    types::{Pieces, Side},
     zobrist::{Zobrist, ZobristKey},
 };
 use crate::types::{BitBoard, EMPTY_BITBOARD, NumOf};
@@ -11,8 +11,8 @@ use crate::types::{BitBoard, EMPTY_BITBOARD, NumOf};
 impl Board {
     fn new() -> Self {
         Board {
-            bb_pieces: [[EMPTY_BITBOARD; NumOf::PIECE_TYPES]; Sides::BOTH],
-            bb_sides: [EMPTY_BITBOARD; Sides::BOTH],
+            bb_pieces: [[EMPTY_BITBOARD; NumOf::PIECE_TYPES]; NumOf::SIDES],
+            bb_sides: [EMPTY_BITBOARD; NumOf::SIDES],
             piece_list: [Pieces::NONE; NumOf::SQUARES],
             game_state: GameState::new(),
             history: GameHistory::new(),
@@ -22,8 +22,8 @@ impl Board {
     pub fn init() -> Self {
         let mut board = Self::new();
         let (white_side, black_side) = board.init_bb_sides();
-        board.bb_sides[Sides::WHITE] = white_side;
-        board.bb_sides[Sides::BLACK] = black_side;
+        board.bb_sides[Side::White as usize] = white_side;
+        board.bb_sides[Side::Black as usize] = black_side;
         board.piece_list = board.get_piece_list();
         board.game_state.zobrist_key = board.init_zobrist_key();
         board
@@ -32,9 +32,9 @@ impl Board {
     fn init_bb_sides(&self) -> (BitBoard, BitBoard) {
         let mut white_side = EMPTY_BITBOARD;
         let mut black_side = EMPTY_BITBOARD;
-        for (wp, bp) in self.bb_pieces[Sides::WHITE]
+        for (wp, bp) in self.bb_pieces[Side::White as usize]
             .iter()
-            .zip(self.bb_pieces[Sides::BLACK].iter())
+            .zip(self.bb_pieces[Side::Black as usize].iter())
         {
             white_side |= *wp;
             black_side |= *bp;
@@ -44,8 +44,8 @@ impl Board {
 
     fn init_zobrist_key(&self) -> ZobristKey {
         let mut key = 0u64;
-        let white_bbs = self.bb_pieces[Sides::WHITE];
-        let black_bbs = self.bb_pieces[Sides::BLACK];
+        let white_bbs = self.bb_pieces[Side::White as usize];
+        let black_bbs = self.bb_pieces[Side::Black as usize];
         for (piece_type, (w, b)) in white_bbs.iter().zip(black_bbs.iter()).enumerate() {
             let mut white_bitboard = *w;
             let mut black_bitboard = *b;
@@ -53,14 +53,14 @@ impl Board {
                 let square_idx = white_bitboard.trailing_zeros() as usize;
                 key ^= self
                     .zobrist_hashmap
-                    .piece(Sides::WHITE, piece_type, square_idx);
+                    .piece(Side::White, piece_type, square_idx);
                 white_bitboard &= white_bitboard - 1;
             }
             while black_bitboard != 0 {
                 let square_idx = black_bitboard.trailing_zeros() as usize;
                 key ^= self
                     .zobrist_hashmap
-                    .piece(Sides::BLACK, piece_type, square_idx);
+                    .piece(Side::Black, piece_type, square_idx);
                 black_bitboard &= black_bitboard - 1;
             }
         }
@@ -72,7 +72,7 @@ impl Board {
             let enpassant_file = (enpassant_square % NumOf::FILES) as usize;
             key ^= self.zobrist_hashmap.enpassant(enpassant_file);
         }
-        if self.game_state.active_color == Sides::BLACK {
+        if self.game_state.active_color == Side::Black {
             key ^= self.zobrist_hashmap.side();
         }
         key

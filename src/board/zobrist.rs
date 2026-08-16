@@ -1,10 +1,10 @@
 use crate::types::NumOf;
 
-use super::types::{CastlingState, Piece, Pieces, Side, Sides, Square};
+use super::types::{CastlingState, Piece, Pieces, Side, Square};
 use rand::{Rng, SeedableRng};
 use rand_pcg::Pcg64;
 
-const NUM_PIECE_HASHES: usize = NumOf::PIECE_TYPES * Sides::BOTH;
+const NUM_PIECE_HASHES: usize = NumOf::PIECE_TYPES * NumOf::SIDES;
 pub type ZobristKey = u64;
 type PieceHashes = [[ZobristKey; NumOf::SQUARES]; NUM_PIECE_HASHES];
 type CastlingHashes = [ZobristKey; NumOf::CASTLING_STATES];
@@ -58,10 +58,10 @@ impl Zobrist {
         }
     }
     pub fn piece(&self, side: Side, piece_type: Piece, square: Square) -> ZobristKey {
-        debug_assert!(side < Sides::BOTH, "Invalid side: {:?}", side);
+        debug_assert!((side as usize) < NumOf::SIDES, "Invalid side: {:?}", side);
         debug_assert!(piece_type < Pieces::NONE, "Invalid piece: {:?}", piece_type);
         debug_assert!(square < NumOf::SQUARES, "Invalid square: {:?}", square);
-        let piece_index = piece_type + (side * 6);
+        let piece_index = piece_type + (side.u8() * 6) as usize;
 
         return self.pieces_hash[piece_index][square];
     }
