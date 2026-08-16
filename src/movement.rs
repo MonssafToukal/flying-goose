@@ -14,7 +14,7 @@ use crate::{
     types::{BitBoard, NumOf},
 };
 use crate::{
-    board::types::{IndexedBySide, Side},
+    board::types::{BySide, Side},
     types::EMPTY_BITBOARD,
 };
 
@@ -41,7 +41,7 @@ impl Display for MovementDataInitError {
 pub struct MovementData {
     pub king_attacks: [BitBoard; NumOf::SQUARES],
     pub knight_attacks: [BitBoard; NumOf::SQUARES],
-    pub pawn_attacks: IndexedBySide<[BitBoard; NumOf::SQUARES]>,
+    pub pawn_attacks: BySide<[BitBoard; NumOf::SQUARES]>,
     // pub pawn_attacks: [[BitBoard; NumOf::SQUARES]; NumOf::SIDES],
     pub rook_attacks: Vec<BitBoard>,
     pub bishop_attacks: Vec<BitBoard>,
@@ -52,7 +52,7 @@ impl MovementData {
         Self {
             king_attacks: [EMPTY_BITBOARD; NumOf::SQUARES],
             knight_attacks: [EMPTY_BITBOARD; NumOf::SQUARES],
-            pawn_attacks: IndexedBySide::new([EMPTY_BITBOARD; NumOf::SQUARES]),
+            pawn_attacks: BySide::new([EMPTY_BITBOARD; NumOf::SQUARES]),
             rook_attacks: vec![EMPTY_BITBOARD; MAX_ROOK_TABLE_SIZE],
             bishop_attacks: vec![EMPTY_BITBOARD; MAX_BISHOP_TABLE_SIZE],
         }

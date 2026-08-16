@@ -3,10 +3,12 @@ use std::fmt::Display;
 use crate::{
     board::{
         Board,
-        types::{Piece, Pieces, SQ, Side, Square},
+        types::{Piece, Pieces, Square, Side},
     },
     types::{NumOf, SQUARE_MASKS},
 };
+
+use super::types::SQ;
 
 impl Board {
     // TODO: remaining fixes for make()
