@@ -9,13 +9,13 @@ use crate::{
 
 impl Board {
     pub fn get_pieces(&self, side: Side, piece: Piece) -> BitBoard {
-        return self.bb_pieces[side as usize][piece];
+        return self.bb_pieces[side][piece];
     }
 
     pub fn get_piece_list(&self) -> [Piece; NumOf::SQUARES] {
         let mut piece_list = [Pieces::NONE; NumOf::SQUARES];
-        let white_bbs = self.bb_pieces[Side::White as usize];
-        let black_bbs = self.bb_pieces[Side::Black as usize];
+        let white_bbs = self.bb_pieces[Side::White];
+        let black_bbs = self.bb_pieces[Side::Black];
         for piece_type in 0..NumOf::PIECE_TYPES {
             let mut white_bitboard = white_bbs[piece_type];
             let mut black_bitboard = black_bbs[piece_type];

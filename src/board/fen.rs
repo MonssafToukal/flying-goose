@@ -88,58 +88,58 @@ pub fn fen_parse_pieces(board: &mut Board, part: &str) -> Result<(), FenError> {
             let mut is_piece_match = true;
             match c {
                 'k' => {
-                    board.bb_pieces[Side::Black as usize][Pieces::KING] |= SQUARE_MASKS[square_idx];
-                    board.bb_sides[Side::Black as usize] |= SQUARE_MASKS[square_idx];
+                    board.bb_pieces[Side::Black][Pieces::KING] |= SQUARE_MASKS[square_idx];
+                    board.bb_sides[Side::Black] |= SQUARE_MASKS[square_idx];
                 }
                 'q' => {
-                    board.bb_pieces[Side::Black as usize][Pieces::QUEEN] |=
+                    board.bb_pieces[Side::Black][Pieces::QUEEN] |=
                         SQUARE_MASKS[square_idx];
-                    board.bb_sides[Side::Black as usize] |= SQUARE_MASKS[square_idx];
+                    board.bb_sides[Side::Black] |= SQUARE_MASKS[square_idx];
                 }
                 'r' => {
-                    board.bb_pieces[Side::Black as usize][Pieces::ROOK] |= SQUARE_MASKS[square_idx];
-                    board.bb_sides[Side::Black as usize] |= SQUARE_MASKS[square_idx];
+                    board.bb_pieces[Side::Black][Pieces::ROOK] |= SQUARE_MASKS[square_idx];
+                    board.bb_sides[Side::Black] |= SQUARE_MASKS[square_idx];
                 }
                 'b' => {
-                    board.bb_pieces[Side::Black as usize][Pieces::BISHOP] |=
+                    board.bb_pieces[Side::Black][Pieces::BISHOP] |=
                         SQUARE_MASKS[square_idx];
-                    board.bb_sides[Side::Black as usize] |= SQUARE_MASKS[square_idx];
+                    board.bb_sides[Side::Black] |= SQUARE_MASKS[square_idx];
                 }
                 'n' => {
-                    board.bb_pieces[Side::Black as usize][Pieces::KNIGHT] |=
+                    board.bb_pieces[Side::Black][Pieces::KNIGHT] |=
                         SQUARE_MASKS[square_idx];
-                    board.bb_sides[Side::Black as usize] |= SQUARE_MASKS[square_idx];
+                    board.bb_sides[Side::Black] |= SQUARE_MASKS[square_idx];
                 }
                 'p' => {
-                    board.bb_pieces[Side::Black as usize][Pieces::PAWN] |= SQUARE_MASKS[square_idx];
-                    board.bb_sides[Side::Black as usize] |= SQUARE_MASKS[square_idx];
+                    board.bb_pieces[Side::Black][Pieces::PAWN] |= SQUARE_MASKS[square_idx];
+                    board.bb_sides[Side::Black] |= SQUARE_MASKS[square_idx];
                 }
                 'K' => {
-                    board.bb_pieces[Side::White as usize][Pieces::KING] |= SQUARE_MASKS[square_idx];
-                    board.bb_sides[Side::White as usize] |= SQUARE_MASKS[square_idx];
+                    board.bb_pieces[Side::White][Pieces::KING] |= SQUARE_MASKS[square_idx];
+                    board.bb_sides[Side::White] |= SQUARE_MASKS[square_idx];
                 }
                 'Q' => {
-                    board.bb_pieces[Side::White as usize][Pieces::QUEEN] |=
+                    board.bb_pieces[Side::White][Pieces::QUEEN] |=
                         SQUARE_MASKS[square_idx];
-                    board.bb_sides[Side::White as usize] |= SQUARE_MASKS[square_idx];
+                    board.bb_sides[Side::White] |= SQUARE_MASKS[square_idx];
                 }
                 'R' => {
-                    board.bb_pieces[Side::White as usize][Pieces::ROOK] |= SQUARE_MASKS[square_idx];
-                    board.bb_sides[Side::White as usize] |= SQUARE_MASKS[square_idx];
+                    board.bb_pieces[Side::White][Pieces::ROOK] |= SQUARE_MASKS[square_idx];
+                    board.bb_sides[Side::White] |= SQUARE_MASKS[square_idx];
                 }
                 'B' => {
-                    board.bb_pieces[Side::White as usize][Pieces::BISHOP] |=
+                    board.bb_pieces[Side::White][Pieces::BISHOP] |=
                         SQUARE_MASKS[square_idx];
-                    board.bb_sides[Side::White as usize] |= SQUARE_MASKS[square_idx];
+                    board.bb_sides[Side::White] |= SQUARE_MASKS[square_idx];
                 }
                 'N' => {
-                    board.bb_pieces[Side::White as usize][Pieces::KNIGHT] |=
+                    board.bb_pieces[Side::White][Pieces::KNIGHT] |=
                         SQUARE_MASKS[square_idx];
-                    board.bb_sides[Side::White as usize] |= SQUARE_MASKS[square_idx];
+                    board.bb_sides[Side::White] |= SQUARE_MASKS[square_idx];
                 }
                 'P' => {
-                    board.bb_pieces[Side::White as usize][Pieces::PAWN] |= SQUARE_MASKS[square_idx];
-                    board.bb_sides[Side::White as usize] |= SQUARE_MASKS[square_idx];
+                    board.bb_pieces[Side::White][Pieces::PAWN] |= SQUARE_MASKS[square_idx];
+                    board.bb_sides[Side::White] |= SQUARE_MASKS[square_idx];
                 }
                 '1'..='8' => {
                     is_piece_match = false;
@@ -254,13 +254,13 @@ pub fn fen_parse_full_move_counter(board: &mut Board, part: &str) -> Result<(), 
 
 #[cfg(test)]
 mod tests {
-    use crate::board::{
+    use crate::{board::{
         fen::FEN_START_POSITION,
         history::GameHistory,
         state::GameState,
-        types::{Files, SquareCoord},
+        types::{BySide, Files, SquareCoord},
         zobrist::Zobrist,
-    };
+    }, types::EMPTY_BITBOARD};
     use crate::types::SQUARE_MASKS;
 
     use super::*;
@@ -293,8 +293,8 @@ mod tests {
     #[test]
     fn test_fen_parse_pieces() {
         let mut test_board = Board {
-            bb_pieces: [[0; NumOf::PIECE_TYPES]; NumOf::SIDES],
-            bb_sides: [0; NumOf::SIDES],
+            bb_pieces: BySide::new([EMPTY_BITBOARD; NumOf::PIECE_TYPES]),
+            bb_sides: BySide::new(EMPTY_BITBOARD),
             piece_list: [Pieces::NONE; NumOf::SQUARES],
             game_state: GameState::new(),
             history: GameHistory::new(),
@@ -308,11 +308,11 @@ mod tests {
         // check if the board has the right values
         // 1. Check the bb_sides array
         const WHITE_START_MASK: u64 = (1u64 << NumOf::PIECES_PER_SIDE) - 1;
-        assert_eq!(test_board.bb_sides[Side::White as usize], WHITE_START_MASK);
+        assert_eq!(test_board.bb_sides[Side::White], WHITE_START_MASK);
         const BLACK_START_MASK: u64 = !((1u64 << (NumOf::SQUARES - NumOf::PIECES_PER_SIDE)) - 1);
-        assert_eq!(test_board.bb_sides[Side::Black as usize], BLACK_START_MASK);
-        let white_pieces = test_board.bb_pieces[Side::White as usize];
-        let black_pieces = test_board.bb_pieces[Side::Black as usize];
+        assert_eq!(test_board.bb_sides[Side::Black], BLACK_START_MASK);
+        let white_pieces = test_board.bb_pieces[Side::White];
+        let black_pieces = test_board.bb_pieces[Side::Black];
         for (piece_type, (wp, bp)) in white_pieces.iter().zip(black_pieces.iter()).enumerate() {
             match piece_type {
                 Pieces::KING => {

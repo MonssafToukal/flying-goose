@@ -8,11 +8,13 @@ use crate::board::{
 };
 use crate::types::{BitBoard, EMPTY_BITBOARD, NumOf};
 
+use super::types::BySide;
+
 impl Board {
     fn new() -> Self {
         Board {
-            bb_pieces: [[EMPTY_BITBOARD; NumOf::PIECE_TYPES]; NumOf::SIDES],
-            bb_sides: [EMPTY_BITBOARD; NumOf::SIDES],
+            bb_pieces: BySide::new([EMPTY_BITBOARD; NumOf::PIECE_TYPES]),
+            bb_sides: BySide::new(EMPTY_BITBOARD),
             piece_list: [Pieces::NONE; NumOf::SQUARES],
             game_state: GameState::new(),
             history: GameHistory::new(),
@@ -22,8 +24,8 @@ impl Board {
     pub fn init() -> Self {
         let mut board = Self::new();
         let (white_side, black_side) = board.init_bb_sides();
-        board.bb_sides[Side::White as usize] = white_side;
-        board.bb_sides[Side::Black as usize] = black_side;
+        board.bb_sides[Side::White] = white_side;
+        board.bb_sides[Side::Black] = black_side;
         board.piece_list = board.get_piece_list();
         board.game_state.zobrist_key = board.init_zobrist_key();
         board
@@ -32,9 +34,9 @@ impl Board {
     fn init_bb_sides(&self) -> (BitBoard, BitBoard) {
         let mut white_side = EMPTY_BITBOARD;
         let mut black_side = EMPTY_BITBOARD;
-        for (wp, bp) in self.bb_pieces[Side::White as usize]
+        for (wp, bp) in self.bb_pieces[Side::White]
             .iter()
-            .zip(self.bb_pieces[Side::Black as usize].iter())
+            .zip(self.bb_pieces[Side::Black].iter())
         {
             white_side |= *wp;
             black_side |= *bp;
@@ -44,8 +46,8 @@ impl Board {
 
     fn init_zobrist_key(&self) -> ZobristKey {
         let mut key = 0u64;
-        let white_bbs = self.bb_pieces[Side::White as usize];
-        let black_bbs = self.bb_pieces[Side::Black as usize];
+        let white_bbs = self.bb_pieces[Side::White];
+        let black_bbs = self.bb_pieces[Side::Black];
         for (piece_type, (w, b)) in white_bbs.iter().zip(black_bbs.iter()).enumerate() {
             let mut white_bitboard = *w;
             let mut black_bitboard = *b;

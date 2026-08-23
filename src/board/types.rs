@@ -91,6 +91,7 @@ impl Pieces {
     pub const NONE: Piece = 6;
 }
 
+#[derive(Debug, Clone, Copy)]
 pub struct BySide<T>([T; NumOf::SIDES]);
 impl<T> BySide<T>
 where
@@ -117,7 +118,7 @@ impl<T> IndexMut<Side> for BySide<T> {
     }
 }
 
-#[repr(usize)]
+#[repr(u8)]
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub enum Side {
     Black = 0x00,
