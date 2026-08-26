@@ -12,10 +12,10 @@ pub const MAX_GAME_MOVES: u64 = 2048;
 pub const FIFTY_MOVE_RULE: u8 = 100;
 
 pub type Piece = usize;
-pub type Square = usize;
+pub type Square = SQ;
 pub type CastlingState = u8;
 
-#[repr(usize)]
+#[repr(u8)]
 #[rustfmt::skip]
 #[derive(Copy, Clone, PartialEq, Eq, Ord, PartialOrd, Debug)]
 pub enum SQ {
@@ -55,6 +55,61 @@ impl From<usize> for SQ {
     }
 }
 
+impl From<u8> for SQ {
+    #[rustfmt::skip]
+    #[inline(always)]
+    fn from(value: u8) -> Self {
+        Self::from(value as usize)
+    }
+}
+
+impl From<u16> for SQ {
+    #[rustfmt::skip]
+    #[inline(always)]
+    fn from(value: u16) -> Self {
+        Self::from(value as usize)
+    }
+}
+
+impl SQ {
+    #[inline(always)]
+    pub fn usize(&self) -> usize {
+        *self as usize
+    }
+    #[inline(always)]
+    pub fn file(&self) -> usize {
+        self.usize() % NumOf::FILES
+    }
+
+    #[inline(always)]
+    pub fn rank(&self) -> usize {
+        self.usize() / NumOf::RANKS
+    }
+
+    // This series of function will do no bound checking for speed
+    // TODO: implement bound checking if necessary
+    #[inline(always)]
+    pub fn north(&self) -> Square {
+        Square::from(*self as usize + NumOf::FILES)
+    }
+
+    #[inline(always)]
+    pub fn south(&self) -> Square {
+        Square::from(*self as usize - NumOf::FILES)
+    }
+
+    #[inline(always)]
+    pub fn east(&self) -> Square {
+        Square::from(*self as usize + 1)
+    }
+
+    #[inline(always)]
+    pub fn west(&self) -> Square {
+        Square::from(*self as usize - 1)
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
 pub struct BySquare<T>([T; NumOf::SQUARES]);
 impl<T> BySquare<T>
 where
@@ -62,6 +117,10 @@ where
 {
     pub fn new(value: T) -> Self {
         Self([value; NumOf::SQUARES])
+    }
+
+    pub const fn init(values: [T; NumOf::SQUARES]) -> Self {
+        Self(values)
     }
 }
 
@@ -79,6 +138,7 @@ impl<T> IndexMut<SQ> for BySquare<T> {
     }
 }
 
+// TODO: convert into an enum at some point
 #[derive(Debug, PartialEq)]
 pub struct Pieces;
 impl Pieces {

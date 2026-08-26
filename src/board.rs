@@ -13,14 +13,14 @@ use crate::{
 };
 use history::GameHistory;
 use state::GameState;
-use types::BySide;
+use types::{BySide, BySquare};
 use zobrist::Zobrist;
 
 #[derive(Debug, Clone)]
 pub struct Board {
     pub bb_pieces: BySide<[BitBoard; NumOf::PIECE_TYPES]>,
     pub bb_sides: BySide<BitBoard>,
-    pub piece_list: [Piece; NumOf::SQUARES],
+    pub piece_list: BySquare<Piece>,
     pub game_state: GameState,
     pub history: GameHistory,
     pub zobrist_hashmap: Zobrist,

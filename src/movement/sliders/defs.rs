@@ -1,4 +1,4 @@
-use crate::board::types::{Direction, MAX_DIRECTIONS, SquareCoord};
+use crate::board::types::{Direction, MAX_DIRECTIONS, Square, SquareCoord};
 use crate::types::{BitBoard, EMPTY_BITBOARD, NumOf, SQUARE_MASKS};
 
 pub struct Slider {
@@ -18,12 +18,13 @@ impl Slider {
         let mut move_bitboard: BitBoard = EMPTY_BITBOARD;
         self.directions.iter().for_each(|direction| {
             let mut current_square = square;
-            while let Ok(next_square) = current_square.next(*direction) {
-                move_bitboard |= SQUARE_MASKS[next_square.to_usize()];
-                if SQUARE_MASKS[next_square.to_usize()] & blocker_mask != 0 {
+            while let Ok(next_square_coord) = current_square.next(*direction) {
+                let next_square = Square::from(next_square_coord.to_usize());
+                move_bitboard |= SQUARE_MASKS[next_square];
+                if SQUARE_MASKS[next_square] & blocker_mask != 0 {
                     break;
                 }
-                current_square = next_square;
+                current_square = next_square_coord;
             }
         });
         move_bitboard
@@ -35,7 +36,8 @@ impl Slider {
             let mut current_square = square;
             while let Ok(next_square) = current_square.next(*direction) {
                 if let Ok(_next_next_square) = next_square.next(*direction) {
-                    blockers_mask |= SQUARE_MASKS[next_square.to_usize()];
+                    let next_square = Square::from(next_square.to_usize());
+                    blockers_mask |= SQUARE_MASKS[next_square];
                 }
                 current_square = next_square;
             }

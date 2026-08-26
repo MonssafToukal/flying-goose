@@ -1,12 +1,12 @@
 use crate::types::NumOf;
 
-use super::types::{CastlingState, Piece, Pieces, Side, Square};
+use super::types::{BySquare, CastlingState, Piece, Pieces, Side, Square};
 use rand::{Rng, SeedableRng};
 use rand_pcg::Pcg64;
 
 const NUM_PIECE_HASHES: usize = NumOf::PIECE_TYPES * NumOf::SIDES;
 pub type ZobristKey = u64;
-type PieceHashes = [[ZobristKey; NumOf::SQUARES]; NUM_PIECE_HASHES];
+type PieceHashes = [BySquare<ZobristKey>; NUM_PIECE_HASHES];
 type CastlingHashes = [ZobristKey; NumOf::CASTLING_STATES];
 type EnpassantHashes = [ZobristKey; NumOf::ENPASSANT_FILES];
 
@@ -31,11 +31,12 @@ impl Zobrist {
             None => Self::DEFAULT_RNG_SEED,
         };
         let mut rng = Pcg64::seed_from_u64(seed);
-        let mut pieces_hash: PieceHashes = [[0u64; NumOf::SQUARES]; NUM_PIECE_HASHES];
+        let mut pieces_hash = [BySquare::new(0u64); NUM_PIECE_HASHES];
         pieces_hash.iter_mut().for_each(|piece| {
-            piece.iter_mut().for_each(|square| {
-                *square = rng.random();
-            });
+            for square in 0..NumOf::SQUARES {
+                let square = Square::from(square);
+                piece[square] = rng.random();
+            }
         });
 
         let side_hashes: u64 = rng.random();
@@ -60,7 +61,11 @@ impl Zobrist {
     pub fn piece(&self, side: Side, piece_type: Piece, square: Square) -> ZobristKey {
         debug_assert!((side as usize) < NumOf::SIDES, "Invalid side: {:?}", side);
         debug_assert!(piece_type < Pieces::NONE, "Invalid piece: {:?}", piece_type);
-        debug_assert!(square < NumOf::SQUARES, "Invalid square: {:?}", square);
+        debug_assert!(
+            (square as usize) < NumOf::SQUARES,
+            "Invalid square: {:?}",
+            square
+        );
         let piece_index = piece_type + (side.u8() * 6) as usize;
 
         return self.pieces_hash[piece_index][square];

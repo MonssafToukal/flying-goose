@@ -1,3 +1,5 @@
+use crate::board::types::BySquare;
+
 pub type BitBoard = u64;
 pub const EMPTY_BITBOARD: BitBoard = 0;
 pub const FULL_BITBOARD: BitBoard = BitBoard::MAX;
@@ -36,16 +38,16 @@ impl NumOf {
     pub const FILES: usize = 8;
 }
 
-pub const SQUARE_MASKS: [BitBoard; NumOf::SQUARES] = generate_square_masks();
+pub const SQUARE_MASKS: BySquare<BitBoard> = generate_square_masks();
 
-const fn generate_square_masks() -> [BitBoard; NumOf::SQUARES] {
-    let mut square_masks = [0u64; NumOf::SQUARES];
+const fn generate_square_masks() -> BySquare<BitBoard> {
+    let mut square_masks = [EMPTY_BITBOARD; NumOf::SQUARES];
     let mut i = 0;
     while i < NumOf::SQUARES {
         square_masks[i] = 1u64 << i;
         i += 1;
     }
-    square_masks
+    BySquare::init(square_masks)
 }
 
 pub const FILE_MASKS: [BitBoard; NumOf::FILES] = generate_file_masks();

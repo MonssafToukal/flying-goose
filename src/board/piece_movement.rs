@@ -3,7 +3,7 @@ use std::fmt::Display;
 use crate::{
     board::{
         Board,
-        types::{Piece, Pieces, Square, Side},
+        types::{Piece, Pieces, Side, Square},
     },
     types::{NumOf, SQUARE_MASKS},
 };
@@ -42,8 +42,8 @@ impl Board {
                 prev_game_state.captured_piece = Some(Pieces::PAWN);
                 let (captured_pawn_square, captured_pawn_color): (Square, Side) =
                     match self.game_state.active_color {
-                        Side::White => (dest_square - NumOf::FILES, Side::Black),
-                        Side::Black => (dest_square + NumOf::FILES, Side::White),
+                        Side::White => (dest_square.south(), Side::Black),
+                        Side::Black => (dest_square.north(), Side::White),
                     };
                 self.remove_piece(Pieces::PAWN, captured_pawn_color, captured_pawn_square);
             }
@@ -91,10 +91,10 @@ impl Board {
             MoveFlag::DoublePawnPush => {
                 let mut enpassant_square: Square = dest_square;
                 if self.game_state.active_color as Side == Side::White {
-                    enpassant_square -= NumOf::FILES;
+                    enpassant_square = enpassant_square.south();
                 }
                 if self.game_state.active_color as Side == Side::Black {
-                    enpassant_square += NumOf::FILES;
+                    enpassant_square = enpassant_square.north();
                 }
                 self.game_state.set_enpassant(enpassant_square);
                 self.set_enpassant_move(enpassant_square);
@@ -112,8 +112,8 @@ impl Board {
                     self.move_piece(
                         Pieces::ROOK,
                         self.game_state.active_color,
-                        SQ::H1 as Square,
-                        dest_square - 1,
+                        SQ::H1,
+                        dest_square.west(),
                     );
                 }
                 Side::Black => {
@@ -121,7 +121,7 @@ impl Board {
                         Pieces::ROOK,
                         self.game_state.active_color,
                         SQ::H8 as Square,
-                        dest_square - 1,
+                        dest_square.west(),
                     );
                 }
             },
@@ -131,7 +131,7 @@ impl Board {
                         Pieces::ROOK,
                         self.game_state.active_color,
                         SQ::A1 as Square,
-                        dest_square + 1,
+                        dest_square.east(),
                     );
                 }
                 Side::Black => {
@@ -139,7 +139,7 @@ impl Board {
                         Pieces::ROOK,
                         self.game_state.active_color,
                         SQ::A8 as Square,
-                        dest_square + 1,
+                        dest_square.east(),
                     );
                 }
             },
@@ -177,7 +177,7 @@ impl Board {
     }
 
     pub fn set_enpassant_move(&mut self, square: Square) {
-        let file = (square % 8) as usize;
+        let file = square.file();
         self.game_state.zobrist_key ^= self.zobrist_hashmap.enpassant(file);
     }
 }
@@ -194,16 +194,16 @@ impl Move {
 
     pub fn new(from_square: Square, dest_square: Square, flags: u8) -> Self {
         let chess_move: u16 = from_square as u16
-            | (dest_square << Self::DEST_SQUARE_BIT_SHIFT) as u16
+            | (dest_square.usize() << Self::DEST_SQUARE_BIT_SHIFT) as u16
             | (flags << Self::FLAGS_BIT_SHIFT) as u16;
         Move(chess_move)
     }
     pub fn from_square(&self) -> Square {
-        (self.0 & Self::FROM_SQUARE_MASK) as Square
+        Square::from(self.0 & Self::FROM_SQUARE_MASK)
     }
 
     pub fn dest_square(&self) -> Square {
-        (self.0 & Self::DEST_SQUARE_MASK) as Square
+        Square::from(self.0 & Self::DEST_SQUARE_MASK)
     }
 
     pub fn flags(&self) -> Result<MoveFlag, InvalidMoveFlag> {

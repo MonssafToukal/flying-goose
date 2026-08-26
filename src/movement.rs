@@ -10,12 +10,12 @@ use sliders::{
 };
 
 use crate::{
-    board::types::SquareCoord,
-    types::{BitBoard, NumOf},
-};
-use crate::{
     board::types::{BySide, Side},
     types::EMPTY_BITBOARD,
+};
+use crate::{
+    board::types::{Square, SquareCoord},
+    types::{BitBoard, NumOf},
 };
 
 #[derive(Debug)]
@@ -71,20 +71,23 @@ impl MovementData {
 impl MovementData {
     fn init_king_attacks(&mut self) -> () {
         for (square_idx, king_attack_entry) in self.king_attacks.iter_mut().enumerate() {
+            let square_idx = Square::from(square_idx);
             *king_attack_entry = get_king_attacks(square_idx);
         }
     }
 
     fn init_knight_attacks(&mut self) -> () {
         for (square_idx, knight_attack) in self.knight_attacks.iter_mut().enumerate() {
+            let square_idx = Square::from(square_idx);
             *knight_attack = get_knight_attacks(square_idx);
         }
     }
 
     fn init_pawn_attacks(&mut self) -> () {
         for square_idx in 0..NumOf::SQUARES {
-            self.pawn_attacks[Side::White][square_idx] = get_pawn_attacks(square_idx, Side::White);
-            self.pawn_attacks[Side::Black][square_idx] = get_pawn_attacks(square_idx, Side::Black);
+            let square = Square::from(square_idx);
+            self.pawn_attacks[Side::White][square_idx] = get_pawn_attacks(square, Side::White);
+            self.pawn_attacks[Side::Black][square_idx] = get_pawn_attacks(square, Side::Black);
         }
     }
 

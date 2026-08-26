@@ -8,14 +8,14 @@ use crate::board::{
 };
 use crate::types::{BitBoard, EMPTY_BITBOARD, NumOf};
 
-use super::types::BySide;
+use super::types::{BySide, BySquare, Square};
 
 impl Board {
     fn new() -> Self {
         Board {
             bb_pieces: BySide::new([EMPTY_BITBOARD; NumOf::PIECE_TYPES]),
             bb_sides: BySide::new(EMPTY_BITBOARD),
-            piece_list: [Pieces::NONE; NumOf::SQUARES],
+            piece_list: BySquare::new(Pieces::NONE),
             game_state: GameState::new(),
             history: GameHistory::new(),
             zobrist_hashmap: Zobrist::new(None),
@@ -52,14 +52,14 @@ impl Board {
             let mut white_bitboard = *w;
             let mut black_bitboard = *b;
             while white_bitboard != 0 {
-                let square_idx = white_bitboard.trailing_zeros() as usize;
+                let square_idx = Square::from(white_bitboard.trailing_zeros() as usize);
                 key ^= self
                     .zobrist_hashmap
                     .piece(Side::White, piece_type, square_idx);
                 white_bitboard &= white_bitboard - 1;
             }
             while black_bitboard != 0 {
-                let square_idx = black_bitboard.trailing_zeros() as usize;
+                let square_idx = Square::from(black_bitboard.trailing_zeros() as usize);
                 key ^= self
                     .zobrist_hashmap
                     .piece(Side::Black, piece_type, square_idx);
@@ -71,7 +71,7 @@ impl Board {
         key ^= self.zobrist_hashmap.castling(self.game_state.castling);
         // handle the enpassant file:
         if let Some(enpassant_square) = self.game_state.enpassant {
-            let enpassant_file = (enpassant_square % NumOf::FILES) as usize;
+            let enpassant_file = (enpassant_square.file()) as usize;
             key ^= self.zobrist_hashmap.enpassant(enpassant_file);
         }
         if self.game_state.active_color == Side::Black {
