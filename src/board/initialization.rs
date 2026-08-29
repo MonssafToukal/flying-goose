@@ -26,7 +26,7 @@ impl Board {
         let (white_side, black_side) = board.init_bb_sides();
         board.bb_sides[Side::White] = white_side;
         board.bb_sides[Side::Black] = black_side;
-        board.piece_list = board.get_piece_list();
+        board.piece_list = board.build_piece_list();
         board.game_state.zobrist_key = board.init_zobrist_key();
         board
     }

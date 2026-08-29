@@ -2,8 +2,7 @@ use std::fmt::Display;
 
 use crate::{
     board::{
-        Board,
-        types::{Piece, Pieces, Side, Square},
+        Board, state::GameState, types::{Piece, Pieces, Side, Square}
     },
     types::{NumOf, SQUARE_MASKS},
 };
@@ -31,146 +30,57 @@ const fn get_castling_permissions() -> BySquare<u8> {
 }
 
 impl Board {
-    // TODO: remaining fixes for make()
-    // - Revoke castling rights when a king moves, a rook moves from its home
-    //   square, castling happens, or a rook is captured on its home square.
-    // - Update half_move_clock (reset on pawn move/capture, increment
-    //   otherwise) and fullmove_counter (increment after Black's move).
-    // - XOR the zobrist side-to-move hash in toggle_side() so the key
-    //   reflects whose turn it is.
+    /*
+     * Some considerations:
+     *  The move encoding scheme is not great.
+     *  The reason is because the move flags encodes if:
+     *  a capture occurs but doesn't tell me what piece can be captured.
+     *  Another problem is with enpassant.
+     *  I have a flag set when when a pawn takes en passant
+     *  But I also have a field in game_state that tells me if there is an enpassant square.
+     *  One of them are redundant.
+     *  Need to rework this
+    */
     pub fn make(&mut self, chess_move: Move) -> () {
-        let mut prev_game_state = self.game_state;
+        // Saving the previous gamestate before making moves
+        self.history.push(self.game_state);
+        let mut prev_game_state = self.history.get_last().unwrap();
+
+        //Decomposing the information from Move bitset:
         let from_square: Square = chess_move.from_square();
-        let dest_square: Square = chess_move.dest_square();
+        let to_square: Square = chess_move.dest_square();
         let moved_piece: Piece = self.piece_list[from_square];
         // TODO: handle this better than with unwrap
         let move_flags = chess_move.flags().unwrap();
 
-        // compute captured_piece
-        match move_flags {
-            MoveFlag::Capture
-            | MoveFlag::KnightCapturePromotion
-            | MoveFlag::BishopCapturePromotion
-            | MoveFlag::RookCapturePromotion
-            | MoveFlag::QueenCapturePromotion => {
-                let captured_piece: Piece = self.piece_list[dest_square];
-                let captured_piece_color: Side = self.get_opponent();
-                prev_game_state.captured_piece = Some(captured_piece);
-                self.remove_piece(captured_piece, captured_piece_color, dest_square);
-            }
-            MoveFlag::EpCapture => {
-                prev_game_state.captured_piece = Some(Pieces::PAWN);
-                let (captured_pawn_square, captured_pawn_color): (Square, Side) =
-                    match self.game_state.active_color {
-                        Side::White => (dest_square.south(), Side::Black),
-                        Side::Black => (dest_square.north(), Side::White),
-                    };
-                self.remove_piece(Pieces::PAWN, captured_pawn_color, captured_pawn_square);
-            }
-            _ => {}
+        let current_player = self.get_current_player();
+        let opponent = self.get_opponent();
+
+        let moved: Piece = self.piece_list[from_square];
+        let captured: Piece = self.piece_list[to_square];
+
+        let is_captured = move_flags.is_capture();
+        let is_promotion = move_flags.is_promotion();
+        let is_enpassant = move_flags.is_enpassant();
+        let is_double_pawn_push = move_flags.is_double_pawn_push();
+
+        // Update GameState
+        if self.game_state.enpassant.is_some() {
+            self.game_state.clear_enpassant();
         }
 
-        // Saving previous state now:
-        self.history.push(prev_game_state);
+        // add ply to ply counter:
+        self.game_state.half_move_clock += 1;
 
-        // Universal move of the moving piece applied here:
-        self.move_piece(
-            moved_piece,
-            self.game_state.active_color,
-            from_square,
-            dest_square,
-        );
-        // XOR the zobrist hash from enpassant square if it exists:
-        if let Some(enpassant_square) = self.game_state.enpassant {
-            self.set_enpassant_move(enpassant_square);
+        if is_captured {
+            prev_game_state.captured_piece = Some(captured);
         }
-
-        // Promotions
-        match move_flags {
-            MoveFlag::KnightPromotion | MoveFlag::KnightCapturePromotion => {
-                self.remove_piece(Pieces::PAWN, self.game_state.active_color, dest_square);
-                self.put_piece(Pieces::KNIGHT, self.game_state.active_color, dest_square);
-            }
-            MoveFlag::BishopPromotion | MoveFlag::BishopCapturePromotion => {
-                self.remove_piece(Pieces::PAWN, self.game_state.active_color, dest_square);
-                self.put_piece(Pieces::BISHOP, self.game_state.active_color, dest_square);
-            }
-            MoveFlag::RookPromotion | MoveFlag::RookCapturePromotion => {
-                self.remove_piece(Pieces::PAWN, self.game_state.active_color, dest_square);
-                self.put_piece(Pieces::ROOK, self.game_state.active_color, dest_square);
-            }
-            MoveFlag::QueenPromotion | MoveFlag::QueenCapturePromotion => {
-                self.remove_piece(Pieces::PAWN, self.game_state.active_color, dest_square);
-                self.put_piece(Pieces::QUEEN, self.game_state.active_color, dest_square);
-            }
-            _ => {}
-        }
-
-        // DoublePawnPush
-        match move_flags {
-            MoveFlag::DoublePawnPush => {
-                let mut enpassant_square: Square = dest_square;
-                if self.game_state.active_color as Side == Side::White {
-                    enpassant_square = enpassant_square.south();
-                }
-                if self.game_state.active_color as Side == Side::Black {
-                    enpassant_square = enpassant_square.north();
-                }
-                self.game_state.set_enpassant(enpassant_square);
-                self.set_enpassant_move(enpassant_square);
-            }
-            _ => {
-                self.game_state.clear_enpassant();
-            }
-        }
-
-        // Castling:
-
-        match move_flags {
-            MoveFlag::KingSideCastle => match self.game_state.active_color {
-                Side::White => {
-                    self.move_piece(
-                        Pieces::ROOK,
-                        self.game_state.active_color,
-                        Square::H1,
-                        dest_square.west(),
-                    );
-                }
-                Side::Black => {
-                    self.move_piece(
-                        Pieces::ROOK,
-                        self.game_state.active_color,
-                        Square::H8 as Square,
-                        dest_square.west(),
-                    );
-                }
-            },
-            MoveFlag::QueenSideCastle => match self.game_state.active_color {
-                Side::White => {
-                    self.move_piece(
-                        Pieces::ROOK,
-                        self.game_state.active_color,
-                        Square::A1 as Square,
-                        dest_square.east(),
-                    );
-                }
-                Side::Black => {
-                    self.move_piece(
-                        Pieces::ROOK,
-                        self.game_state.active_color,
-                        Square::A8 as Square,
-                        dest_square.east(),
-                    );
-                }
-            },
-            _ => {}
-        }
-        self.game_state.toggle_side();
-    }
-
-    pub fn unmake(&mut self, piece: Piece, from_square: Square, to_square: Square) -> () {
         todo!()
     }
+
+    // pub fn unmake(&mut self, piece: Piece, from_square: Square, to_square: Square) -> () {
+    //     todo!()
+    // }
     pub fn put_piece(&mut self, piece: Piece, side: Side, square_idx: Square) {
         self.bb_pieces[side][piece] |= SQUARE_MASKS[square_idx];
         self.bb_sides[side] |= SQUARE_MASKS[square_idx];
@@ -204,6 +114,8 @@ impl Board {
 
 #[derive(Clone, Copy)]
 pub struct Move(u16);
+
+// TODO: review this encoding as it simply doesn't seem good enough.
 
 impl Move {
     const DEST_SQUARE_BIT_SHIFT: u8 = 6;
@@ -279,6 +191,29 @@ impl TryFrom<u8> for MoveFlag {
                 invalid_flag_state: value,
             }),
         }
+    }
+}
+
+impl MoveFlag {
+    const PROMOTION_MASK: u8 = 0b1000;
+    #[inline(always)]
+    pub fn is_capture(&self) -> bool {
+        (*self as u8) & (Self::Capture as u8) != 0x00
+    }
+
+    #[inline(always)]
+    pub fn is_promotion(&self) -> bool {
+        ((*self as u8) & Self::PROMOTION_MASK) != 0x00
+    }
+
+    #[inline(always)]
+    pub fn is_enpassant(&self) -> bool {
+        *self == Self::EpCapture
+    }
+
+    #[inline(always)]
+    pub fn is_double_pawn_push(&self) -> bool {
+        *self == Self::DoublePawnPush
     }
 }
 

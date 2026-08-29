@@ -10,11 +10,12 @@ use crate::{
 use super::types::{BySquare, Square};
 
 impl Board {
+    #[inline]
     pub fn get_pieces(&self, side: Side, piece: Piece) -> BitBoard {
         return self.bb_pieces[side][piece];
     }
 
-    pub fn get_piece_list(&self) -> BySquare<Piece> {
+    pub fn build_piece_list(&self) -> BySquare<Piece> {
         let mut piece_list = BySquare::new(Pieces::NONE);
         let white_bbs = self.bb_pieces[Side::White];
         let black_bbs = self.bb_pieces[Side::Black];
