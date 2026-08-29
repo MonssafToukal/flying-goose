@@ -50,22 +50,6 @@ fn main() -> Result<(), MovementDataInitError> {
     let mut movement_data = MovementData::new();
     movement_data.init()?;
 
-    // for (sq_idx, &magic_entry) in BISHOP_MAGICS.iter().enumerate() {
-    //     let sq = SquareCoord::try_from(sq_idx as u8).unwrap();
-    //     let blocker_mask = magic_entry.blocker_mask;
-
-    //     let expected = BISHOP_SLIDER.get_moves(sq, blocker_mask);
-    //     let table_idx = magic_entry.get_magic_index(blocker_mask) + magic_entry.offset as usize;
-    //     let actual = movement_data.bishop_attacks[table_idx];
-
-    //     println!("=== Square {} ===", sq_idx);
-    //     print_boards_side_by_side(
-    //         &["Blocker mask", "Expected moves", "Actual (table)"],
-    //         &[blocker_mask, expected, actual],
-    //     );
-    //     println!();
-    // }
-    //
     for color in 0..NumOf::SIDES {
         let color = Side::from(color);
         match color {

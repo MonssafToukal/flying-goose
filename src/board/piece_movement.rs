@@ -8,7 +8,27 @@ use crate::{
     types::{NumOf, SQUARE_MASKS},
 };
 
-use super::types::SQ;
+use super::types::{BySquare, CastlingRight};
+
+const CASTLING_PERMISSIONS: BySquare<u8> = get_castling_permissions();
+
+const fn get_castling_permissions() -> BySquare<u8> {
+    let default_castling_permissions = CastlingRight::ALL;
+    let mut permissions = [default_castling_permissions; NumOf::SQUARES];
+    // TODO!
+    permissions[Square::A1 as usize] = !(CastlingRight::WhiteQueenSide as u8);
+    permissions[Square::E1 as usize] =
+        !(CastlingRight::WhiteQueenSide as u8 | CastlingRight::WhiteKingSide as u8);
+    permissions[Square::A1 as usize] = !(CastlingRight::WhiteKingSide as u8);
+    permissions[Square::A8 as usize] = !(CastlingRight::BlackQueenSide as u8);
+    permissions[Square::E8 as usize] =
+        !(CastlingRight::BlackQueenSide as u8 | CastlingRight::BlackKingSide as u8);
+    permissions[Square::A8 as usize] = !(CastlingRight::BlackKingSide as u8);
+
+    let permissions = BySquare::init(permissions);
+
+    permissions
+}
 
 impl Board {
     // TODO: remaining fixes for make()
@@ -112,7 +132,7 @@ impl Board {
                     self.move_piece(
                         Pieces::ROOK,
                         self.game_state.active_color,
-                        SQ::H1,
+                        Square::H1,
                         dest_square.west(),
                     );
                 }
@@ -120,7 +140,7 @@ impl Board {
                     self.move_piece(
                         Pieces::ROOK,
                         self.game_state.active_color,
-                        SQ::H8 as Square,
+                        Square::H8 as Square,
                         dest_square.west(),
                     );
                 }
@@ -130,7 +150,7 @@ impl Board {
                     self.move_piece(
                         Pieces::ROOK,
                         self.game_state.active_color,
-                        SQ::A1 as Square,
+                        Square::A1 as Square,
                         dest_square.east(),
                     );
                 }
@@ -138,7 +158,7 @@ impl Board {
                     self.move_piece(
                         Pieces::ROOK,
                         self.game_state.active_color,
-                        SQ::A8 as Square,
+                        Square::A8 as Square,
                         dest_square.east(),
                     );
                 }
@@ -195,7 +215,7 @@ impl Move {
     pub fn new(from_square: Square, dest_square: Square, flags: u8) -> Self {
         let chess_move: u16 = from_square as u16
             | (dest_square.usize() << Self::DEST_SQUARE_BIT_SHIFT) as u16
-            | (flags << Self::FLAGS_BIT_SHIFT) as u16;
+            | ((flags as u16) << Self::FLAGS_BIT_SHIFT);
         Move(chess_move)
     }
     pub fn from_square(&self) -> Square {

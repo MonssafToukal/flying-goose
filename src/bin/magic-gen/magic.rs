@@ -2,7 +2,7 @@ use std::collections::HashSet;
 use std::fmt::Display;
 use std::sync::OnceLock;
 
-use flying_goose::board::types::{Direction, Square, SquareCoord};
+use flying_goose::board::types::{Direction, SquareCoord};
 use flying_goose::movement::sliders::defs::{Slider, get_all_blockers_subsets};
 use flying_goose::movement::sliders::magics::MagicEntry;
 use flying_goose::types::print_bb;
@@ -18,6 +18,7 @@ const ROOK_TABLE_SIZE: usize = 102400;
 const BISHOP_TABLE_SIZE: usize = 5248;
 
 // Constants for squares
+type Square = usize;
 type CornerVec = Vec<Square>;
 type EdgeVec = Vec<Square>;
 type InteriorVec = Vec<Square>;
