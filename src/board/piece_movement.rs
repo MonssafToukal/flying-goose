@@ -42,9 +42,6 @@ impl Board {
      *  Need to rework this
     */
     pub fn make(&mut self, chess_move: Move) -> () {
-        // Saving the previous gamestate before making moves
-        self.history.push(self.game_state);
-        let mut prev_game_state = self.history.get_last().unwrap();
 
         //Decomposing the information from Move bitset:
         let from_square: Square = chess_move.from_square();
@@ -64,17 +61,27 @@ impl Board {
         let is_enpassant = move_flags.is_enpassant();
         let is_double_pawn_push = move_flags.is_double_pawn_push();
 
-        // Update GameState
-        if self.game_state.enpassant.is_some() {
-            self.game_state.clear_enpassant();
-        }
+        // Saving the previous gamestate before making moves
+        let mut prev_game_state = self.game_state;
 
         // add ply to ply counter:
         self.game_state.half_move_clock += 1;
-
+        // Saving captured piece if any in the old game_state
         if is_captured {
             prev_game_state.captured_piece = Some(captured);
+            self.game_state.half_move_clock = 0;
+            self.remove_piece(captured, opponent, to_square);
         }
+        self.history.push(prev_game_state);
+
+        // Clear enpassant square first
+        self.clear_enpassant();
+
+        // Handle Castling
+        let new_castling_permissions = CASTLING_PERMISSIONS[from_square] & CASTLING_PERMISSIONS[to_square];
+
+
+
         todo!()
     }
 
@@ -106,10 +113,20 @@ impl Board {
         self.put_piece(piece, side, final_square);
     }
 
-    pub fn set_enpassant_move(&mut self, square: Square) {
+    pub fn set_enpassant(&mut self, square: Square) {
+        self.game_state.set_enpassant(square);
         let file = square.file();
         self.game_state.zobrist_key ^= self.zobrist_hashmap.enpassant(file);
     }
+
+    pub fn clear_enpassant(&mut self) {
+        if let Some(ep_square) = self.game_state.enpassant {
+            let file = ep_square.file();
+            self.game_state.zobrist_key ^= self.zobrist_hashmap.enpassant(file);
+        }
+        self.game_state.clear_enpassant();
+    }
+
 }
 
 #[derive(Clone, Copy)]
