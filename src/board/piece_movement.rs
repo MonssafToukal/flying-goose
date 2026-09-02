@@ -1,13 +1,13 @@
-use std::fmt::Display;
-
 use crate::{
     board::{
-        Board, state::GameState, types::{Piece, Pieces, Side, Square}
+        Board,
+        types::{Piece, Square},
     },
-    types::{NumOf, SQUARE_MASKS},
+    types::NumOf,
 };
+use std::fmt::Display;
 
-use super::types::{BySquare, CastlingRight};
+use super::types::{BySquare, CastlingRight, Pieces};
 
 const CASTLING_PERMISSIONS: BySquare<u8> = get_castling_permissions();
 
@@ -18,11 +18,11 @@ const fn get_castling_permissions() -> BySquare<u8> {
     permissions[Square::A1 as usize] = !(CastlingRight::WhiteQueenSide as u8);
     permissions[Square::E1 as usize] =
         !(CastlingRight::WhiteQueenSide as u8 | CastlingRight::WhiteKingSide as u8);
-    permissions[Square::A1 as usize] = !(CastlingRight::WhiteKingSide as u8);
+    permissions[Square::H1 as usize] = !(CastlingRight::WhiteKingSide as u8);
     permissions[Square::A8 as usize] = !(CastlingRight::BlackQueenSide as u8);
     permissions[Square::E8 as usize] =
         !(CastlingRight::BlackQueenSide as u8 | CastlingRight::BlackKingSide as u8);
-    permissions[Square::A8 as usize] = !(CastlingRight::BlackKingSide as u8);
+    permissions[Square::H8 as usize] = !(CastlingRight::BlackKingSide as u8);
 
     let permissions = BySquare::init(permissions);
 
@@ -40,9 +40,8 @@ impl Board {
      *  But I also have a field in game_state that tells me if there is an enpassant square.
      *  One of them are redundant.
      *  Need to rework this
-    */
+     */
     pub fn make(&mut self, chess_move: Move) -> () {
-
         //Decomposing the information from Move bitset:
         let from_square: Square = chess_move.from_square();
         let to_square: Square = chess_move.dest_square();
@@ -56,6 +55,7 @@ impl Board {
         let moved: Piece = self.piece_list[from_square];
         let captured: Piece = self.piece_list[to_square];
 
+        let is_castling = move_flags.is_castling();
         let is_captured = move_flags.is_capture();
         let is_promotion = move_flags.is_promotion();
         let is_enpassant = move_flags.is_enpassant();
@@ -63,6 +63,7 @@ impl Board {
 
         // Saving the previous gamestate before making moves
         let mut prev_game_state = self.game_state;
+        prev_game_state.next_move = chess_move;
 
         // add ply to ply counter:
         self.game_state.half_move_clock += 1;
@@ -77,62 +78,73 @@ impl Board {
         // Clear enpassant square first
         self.clear_enpassant();
 
+        if moved_piece == Pieces::PAWN {
+            self.remove_piece(moved_piece, current_player, from_square);
+            let piece_to_put: Piece = match move_flags {
+                MoveFlag::KnightPromotion => Pieces::KNIGHT,
+                MoveFlag::BishopPromotion => Pieces::BISHOP,
+                MoveFlag::RookPromotion => Pieces::ROOK,
+                MoveFlag::QueenPromotion => Pieces::QUEEN,
+                MoveFlag::KnightCapturePromotion => Pieces::KNIGHT,
+                MoveFlag::BishopCapturePromotion => Pieces::BISHOP,
+                MoveFlag::RookCapturePromotion => Pieces::ROOK,
+                MoveFlag::QueenCapturePromotion => Pieces::QUEEN,
+                _ => Pieces::PAWN,
+            };
+            self.put_piece(piece_to_put, current_player, to_square);
+            self.game_state.half_move_clock = 0;
+
+            if is_enpassant {
+                // remove the pawn on the enpassant_square:
+                /*
+                1. find the opponents pawn direction (+8 or -8) for white and black respectively
+                2. from this offset, calculate the square position of the pawn that was captured en passant
+                3. remove it
+                 */
+                let opponent_pawn_direction = Board::get_pawn_direction(opponent);
+                let opponent_pawn_square = (to_square.usize() as i16) + opponent_pawn_direction as i16;
+                let opponent_pawn_square = Square::from(opponent_pawn_square as usize);
+                self.remove_piece(Pieces::PAWN, opponent, opponent_pawn_square);
+            }
+
+            if is_double_pawn_push {
+                let opponent_pawn_direction = Board::get_pawn_direction(opponent);
+                let ep_square = (to_square.usize() as i16) + opponent_pawn_direction as i16;
+                let ep_square = Square::from(ep_square as usize);
+                self.set_enpassant(ep_square);
+            }
+        } else {
+            self.move_piece(moved_piece, current_player, from_square, to_square);
+        }
+
         // Handle Castling
-        let new_castling_permissions = CASTLING_PERMISSIONS[from_square] & CASTLING_PERMISSIONS[to_square];
+        let new_castling_permissions =
+            CASTLING_PERMISSIONS[from_square] & CASTLING_PERMISSIONS[to_square];
+        self.update_castling_permissions(new_castling_permissions);
 
+        if current_player == Side::Black {
+            self.game_state.fullmove_counter += 1;
+        }
+        self.toggle_side();
 
-
-        todo!()
+        // TODO: check if the move is legal and return an error if not.
     }
 
     // pub fn unmake(&mut self, piece: Piece, from_square: Square, to_square: Square) -> () {
     //     todo!()
     // }
-    pub fn put_piece(&mut self, piece: Piece, side: Side, square_idx: Square) {
-        self.bb_pieces[side][piece] |= SQUARE_MASKS[square_idx];
-        self.bb_sides[side] |= SQUARE_MASKS[square_idx];
-        self.piece_list[square_idx] = piece;
-        self.game_state.zobrist_key ^= self.zobrist_hashmap.piece(side, piece, square_idx)
-    }
-
-    pub fn remove_piece(&mut self, piece: Piece, side: Side, square_idx: Square) {
-        self.bb_pieces[side][piece] &= !SQUARE_MASKS[square_idx];
-        self.bb_sides[side] &= !SQUARE_MASKS[square_idx];
-        self.piece_list[square_idx] = Pieces::NONE;
-        self.game_state.zobrist_key ^= self.zobrist_hashmap.piece(side, piece, square_idx);
-    }
-
-    pub fn move_piece(
-        &mut self,
-        piece: Piece,
-        side: Side,
-        initial_square: Square,
-        final_square: Square,
-    ) {
-        self.remove_piece(piece, side, initial_square);
-        self.put_piece(piece, side, final_square);
-    }
-
-    pub fn set_enpassant(&mut self, square: Square) {
-        self.game_state.set_enpassant(square);
-        let file = square.file();
-        self.game_state.zobrist_key ^= self.zobrist_hashmap.enpassant(file);
-    }
-
-    pub fn clear_enpassant(&mut self) {
-        if let Some(ep_square) = self.game_state.enpassant {
-            let file = ep_square.file();
-            self.game_state.zobrist_key ^= self.zobrist_hashmap.enpassant(file);
-        }
-        self.game_state.clear_enpassant();
-    }
-
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, PartialOrd, Ord)]
 pub struct Move(u16);
 
 // TODO: review this encoding as it simply doesn't seem good enough.
+/*
+Current encoding:
+0000 0000 0011 1111 from square
+0000 1111 1100 0000 to square
+1111 0000 0000 0000 flags
+ */
 
 impl Move {
     const DEST_SQUARE_BIT_SHIFT: u8 = 6;
@@ -231,6 +243,15 @@ impl MoveFlag {
     #[inline(always)]
     pub fn is_double_pawn_push(&self) -> bool {
         *self == Self::DoublePawnPush
+    }
+
+    #[inline(always)]
+    fn is_castling(&self) -> bool {
+        match *self {
+            MoveFlag::KingSideCastle => true,
+            MoveFlag::QueenSideCastle => true,
+            _ => false,
+        }
     }
 }
 

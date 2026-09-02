@@ -1,5 +1,6 @@
 pub mod defs;
 pub mod fen;
+pub mod helpers;
 pub mod history;
 pub mod initialization;
 pub mod piece_movement;

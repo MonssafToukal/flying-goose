@@ -78,7 +78,7 @@ impl Zobrist {
         );
         self.castling_hashes[castling_state as usize]
     }
-    pub fn enpassant(&self, file: usize) -> ZobristKey {
+    pub fn enpassant(&self, square: usize) -> ZobristKey {
         self.enpassant_hashes[file]
     }
     pub fn side(&self) -> ZobristKey {

@@ -1,8 +1,8 @@
 use crate::board::Piece;
 use crate::board::types::CastlingRight;
 use crate::board::types::{CastlingState, Side, Square};
-
 use crate::board::zobrist::ZobristKey;
+use crate::board::piece_movement::Move;
 
 #[derive(Clone, Copy, Debug)]
 pub struct GameState {
@@ -13,6 +13,7 @@ pub struct GameState {
     pub half_move_clock: u8,
     pub fullmove_counter: u16,
     pub zobrist_key: ZobristKey,
+    pub next_move: Move,
 }
 impl GameState {
     pub fn new() -> Self {
@@ -29,15 +30,26 @@ impl GameState {
             half_move_clock: 0,
             fullmove_counter: 1,
             zobrist_key: 0,
+            next_move: Move(0),
         }
     }
     pub fn revoke_right(&mut self, right: CastlingRight) {
         // We don't use XOR here because we want to clear the castling regardless of its previous state
         self.castling &= !(right as u8);
     }
+
+    #[inline]
+    pub fn set_castling(&mut self, castling_rights: u8) {
+        debug_assert!(castling_rights <= CastlingRight::ALL);
+        self.castling = castling_rights;
+    }
+
+    #[inline]
     pub fn set_enpassant(&mut self, square: Square) {
         self.enpassant = Some(square);
     }
+
+    #[inline]
     pub fn clear_enpassant(&mut self) {
         self.enpassant = None;
     }
@@ -50,5 +62,11 @@ impl GameState {
     #[inline]
     pub fn toggle_side(&mut self) {
         self.active_color = self.active_color.other();
+    }
+}
+
+impl Default for GameState {
+    fn default() -> Self {
+        Self::new()
     }
 }
