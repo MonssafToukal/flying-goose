@@ -21,14 +21,12 @@ impl Board {
             zobrist_hashmap: Zobrist::new(None),
         }
     }
-    pub fn init() -> Self {
-        let mut board = Self::new();
-        let (white_side, black_side) = board.init_bb_sides();
-        board.bb_sides[Side::White] = white_side;
-        board.bb_sides[Side::Black] = black_side;
-        board.piece_list = board.build_piece_list();
-        board.game_state.zobrist_key = board.init_zobrist_key();
-        board
+    pub fn init(&mut self) {
+        let (white_side, black_side) = self.init_bb_sides();
+        self.bb_sides[Side::White] = white_side;
+        self.bb_sides[Side::Black] = black_side;
+        self.piece_list = self.build_piece_list();
+        self.game_state.zobrist_key = self.init_zobrist_key();
     }
 
     fn init_bb_sides(&self) -> (BitBoard, BitBoard) {
@@ -91,6 +89,8 @@ impl Board {
             .zip(fen_parts.iter())
             .try_for_each(|(fen_parser, part)| fen_parser(&mut new_board, part.as_str()))?;
         *self = new_board;
+
+        self.init();
         Ok(())
     }
 }

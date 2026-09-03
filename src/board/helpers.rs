@@ -49,7 +49,7 @@ impl Board {
 
     pub fn update_castling_permissions(&mut self, new_castling_permissions: u8) {
         self.game_state.zobrist_key ^= self.zobrist_hashmap.castling(self.game_state.castling);
-        self.game_state.set_castling(new_castling_permissions);
+        self.game_state.update_castling(new_castling_permissions);
         self.game_state.zobrist_key ^= self.zobrist_hashmap.castling(new_castling_permissions);
     }
 

@@ -219,6 +219,7 @@ impl Side {
 }
 
 #[repr(u8)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum CastlingRight {
     WhiteKingSide = 0x01,
     WhiteQueenSide = 0x02,

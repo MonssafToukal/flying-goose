@@ -30,7 +30,7 @@ impl GameState {
             half_move_clock: 0,
             fullmove_counter: 1,
             zobrist_key: 0,
-            next_move: Move(0),
+            next_move: Move::new(Square::A1, Square::A1, 0),
         }
     }
     pub fn revoke_right(&mut self, right: CastlingRight) {
@@ -39,9 +39,9 @@ impl GameState {
     }
 
     #[inline]
-    pub fn set_castling(&mut self, castling_rights: u8) {
-        debug_assert!(castling_rights <= CastlingRight::ALL);
-        self.castling = castling_rights;
+    pub fn update_castling(&mut self, castling_rights: u8) {
+        self.castling &= castling_rights;
+        debug_assert!( self.castling <= castling_rights );
     }
 
     #[inline]
