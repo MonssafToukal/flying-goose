@@ -101,63 +101,10 @@ fn print_board_state(label: &str, board: &Board) {
 }
 
 fn main() -> Result<(), MovementDataInitError> {
-    // --- Example 1: quiet pawn push -----------------------------------
-    let mut board = start_pos();
-    print_board_state("Start position", &board);
-
-    board.make(Move::new(Square::E2, Square::E3, MoveFlag::Quiet as u8));
-    print_board_state("After 1. e3 (quiet pawn push)", &board);
-
-    // --- Example 2: double pawn push sets en passant -------------------
-    let mut board = start_pos();
-    board.make(Move::new(
-        Square::E2,
-        Square::E4,
-        MoveFlag::DoublePawnPush as u8,
-    ));
-    print_board_state(
-        "After 1. e4 (double pawn push, en passant square set)",
-        &board,
-    );
-
-    // --- Example 3: en passant capture ----------------------------------
-    // Position after 1.e4 e6 2.e5 d5, set up directly via FEN (rather than
-    // replaying moves) so fen_setup()/init() do all the state-rebuilding work.
     let mut board = empty_board();
-    board
-        .fen_setup(Some(
-            "rnbqkbnr/ppp2ppp/4p3/3pP3/8/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 3",
-        ))
-        .unwrap();
-    print_board_state("Before en passant capture (after 1.e4 e6 2.e5 d5)", &board);
-    board.make(Move::new(Square::E5, Square::D6, MoveFlag::EpCapture as u8));
-    print_board_state("After 3. exd6 e.p.", &board);
-
-    // --- Example 4: white king-side castling ----------------------------
-    let mut board = empty_board();
-    board
-        .fen_setup(Some(
-            "rnbqkbnr/pppppppp/8/8/8/5NP1/PPPPPPBP/RNBQK2R w KQkq - 0 3",
-        ))
-        .unwrap();
-    print_board_state("Before white king-side castle", &board);
-    board.make(Move::new(
-        Square::E1,
-        Square::G1,
-        MoveFlag::KingSideCastle as u8,
-    ));
-    print_board_state("After O-O (king and rook both moved)", &board);
-
-    // --- Example 5: capture -----------------------------------------
-    let mut board = empty_board();
-    board
-        .fen_setup(Some(
-            "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2",
-        ))
-        .unwrap();
-    print_board_state("Before capture (1.e4 d5)", &board);
-    board.make(Move::new(Square::E4, Square::D5, MoveFlag::Capture as u8));
-    print_board_state("After 2. exd5 (capture)", &board);
+    board.fen_setup(None);
+    board.init();
+    print_board_state("starting position", &board);
 
     Ok(())
 }
