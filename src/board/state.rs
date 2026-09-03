@@ -1,8 +1,8 @@
 use crate::board::Piece;
+use crate::board::piece_movement::Move;
 use crate::board::types::CastlingRight;
 use crate::board::types::{CastlingState, Side, Square};
 use crate::board::zobrist::ZobristKey;
-use crate::board::piece_movement::Move;
 
 #[derive(Clone, Copy, Debug)]
 pub struct GameState {
@@ -41,7 +41,7 @@ impl GameState {
     #[inline]
     pub fn update_castling(&mut self, castling_rights: u8) {
         self.castling &= castling_rights;
-        debug_assert!( self.castling <= castling_rights );
+        debug_assert!(self.castling <= castling_rights);
     }
 
     #[inline]

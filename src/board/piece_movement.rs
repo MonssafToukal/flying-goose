@@ -53,7 +53,6 @@ impl Board {
         let current_player = self.get_current_player();
         let opponent = self.get_opponent();
 
-
         let is_castling = move_flags.is_castling();
         let is_captured = move_flags.is_capture();
         let is_promotion = move_flags.is_promotion();
@@ -101,7 +100,8 @@ impl Board {
                  */
                 prev_game_state.captured_piece = Some(Pieces::PAWN);
                 let opponent_pawn_direction = Board::get_pawn_direction(opponent);
-                let opponent_pawn_square = (to_square.usize() as i16) + opponent_pawn_direction as i16;
+                let opponent_pawn_square =
+                    (to_square.usize() as i16) + opponent_pawn_direction as i16;
                 let opponent_pawn_square = Square::from(opponent_pawn_square as usize);
                 self.remove_piece(Pieces::PAWN, opponent, opponent_pawn_square);
                 self.set_enpassant(to_square);
@@ -130,10 +130,12 @@ impl Board {
                 Square::C1 => self.move_piece(Pieces::ROOK, current_player, Square::A1, Square::D1),
                 Square::G8 => self.move_piece(Pieces::ROOK, current_player, Square::H8, Square::F8),
                 Square::C8 => self.move_piece(Pieces::ROOK, current_player, Square::A8, Square::D8),
-                _ => panic!("error in make: moving rook during castling matched an impossible square {:?}", to_square),
+                _ => panic!(
+                    "error in make: moving rook during castling matched an impossible square {:?}",
+                    to_square
+                ),
             }
         }
-
 
         if current_player == Side::Black {
             self.game_state.fullmove_counter += 1;
@@ -182,7 +184,7 @@ impl Move {
     }
 
     pub fn flags(&self) -> Result<MoveFlag, InvalidMoveFlag> {
-        let move_flag_values = ((self.0 & Self::FLAGS_MASK)  >> Self::FLAGS_BIT_SHIFT) as u8;
+        let move_flag_values = ((self.0 & Self::FLAGS_MASK) >> Self::FLAGS_BIT_SHIFT) as u8;
         MoveFlag::try_from(move_flag_values)
     }
 }
@@ -348,7 +350,11 @@ mod tests {
         // After 1. e4, en passant is set on e3. A following unrelated quiet
         // move must clear it.
         let mut board = start_pos();
-        board.make(Move::new(Square::E2, Square::E4, MoveFlag::DoublePawnPush as u8));
+        board.make(Move::new(
+            Square::E2,
+            Square::E4,
+            MoveFlag::DoublePawnPush as u8,
+        ));
         assert_eq!(board.game_state.enpassant, Some(Square::E3));
 
         board.make(Move::new(Square::B8, Square::C6, MoveFlag::Quiet as u8));
@@ -360,10 +366,18 @@ mod tests {
     fn enpassant_capture_removes_captured_pawn_and_records_it() {
         // 1. e4 e6 2. e5 d5 3. exd6 e.p.
         let mut board = start_pos();
-        board.make(Move::new(Square::E2, Square::E4, MoveFlag::DoublePawnPush as u8));
+        board.make(Move::new(
+            Square::E2,
+            Square::E4,
+            MoveFlag::DoublePawnPush as u8,
+        ));
         board.make(Move::new(Square::E7, Square::E6, MoveFlag::Quiet as u8));
         board.make(Move::new(Square::E4, Square::E5, MoveFlag::Quiet as u8));
-        board.make(Move::new(Square::D7, Square::D5, MoveFlag::DoublePawnPush as u8));
+        board.make(Move::new(
+            Square::D7,
+            Square::D5,
+            MoveFlag::DoublePawnPush as u8,
+        ));
         assert_eq!(board.game_state.enpassant, Some(Square::D6));
 
         board.make(Move::new(Square::E5, Square::D6, MoveFlag::EpCapture as u8));
@@ -375,7 +389,10 @@ mod tests {
         // The captured piece recorded for unmake/history should be a pawn,
         // not Pieces::NONE (there is nothing sitting on the destination
         // square d6 before an en-passant capture).
-        let prev_state = board.history.get_last().expect("history should have an entry");
+        let prev_state = board
+            .history
+            .get_last()
+            .expect("history should have an entry");
         assert_eq!(prev_state.captured_piece, Some(Pieces::PAWN));
     }
 
@@ -386,7 +403,11 @@ mod tests {
         let fen = "rnbqkbnr/ppp1pppp/8/8/3p4/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
         let mut board = board_from_fen(fen);
 
-        board.make(Move::new(Square::E2, Square::E4, MoveFlag::DoublePawnPush as u8));
+        board.make(Move::new(
+            Square::E2,
+            Square::E4,
+            MoveFlag::DoublePawnPush as u8,
+        ));
         assert_eq!(board.game_state.enpassant, Some(Square::E3));
 
         board.make(Move::new(Square::D4, Square::E3, MoveFlag::EpCapture as u8));
@@ -395,7 +416,10 @@ mod tests {
         assert_eq!(board.piece_list[Square::E3], Pieces::PAWN);
         assert_eq!(board.piece_list[Square::D4], Pieces::NONE);
         assert_eq!(board.piece_list[Square::E4], Pieces::NONE);
-        let prev_state = board.history.get_last().expect("history should have an entry");
+        let prev_state = board
+            .history
+            .get_last()
+            .expect("history should have an entry");
         assert_eq!(prev_state.captured_piece, Some(Pieces::PAWN));
     }
 
@@ -411,7 +435,10 @@ mod tests {
         assert_eq!(board.piece_list[Square::D5], Pieces::PAWN);
         assert_eq!(board.piece_list[Square::E4], Pieces::NONE);
         assert_eq!(board.game_state.half_move_clock, 0);
-        let prev_state = board.history.get_last().expect("history should have an entry");
+        let prev_state = board
+            .history
+            .get_last()
+            .expect("history should have an entry");
         assert_eq!(prev_state.captured_piece, Some(Pieces::PAWN));
     }
 
@@ -477,7 +504,10 @@ mod tests {
         assert_eq!(board.game_state.castling & white_queen_side, 0);
         // Black's rights must be untouched.
         assert_eq!(board.game_state.castling & black_king_side, black_king_side);
-        assert_eq!(board.game_state.castling & black_queen_side, black_queen_side);
+        assert_eq!(
+            board.game_state.castling & black_queen_side,
+            black_queen_side
+        );
     }
 
     #[test]
@@ -529,10 +559,18 @@ mod tests {
         let mut board = start_pos();
         assert_eq!(board.game_state.fullmove_counter, 1);
 
-        board.make(Move::new(Square::E2, Square::E4, MoveFlag::DoublePawnPush as u8));
+        board.make(Move::new(
+            Square::E2,
+            Square::E4,
+            MoveFlag::DoublePawnPush as u8,
+        ));
         assert_eq!(board.game_state.fullmove_counter, 1);
 
-        board.make(Move::new(Square::E7, Square::E5, MoveFlag::DoublePawnPush as u8));
+        board.make(Move::new(
+            Square::E7,
+            Square::E5,
+            MoveFlag::DoublePawnPush as u8,
+        ));
         assert_eq!(board.game_state.fullmove_counter, 2);
     }
 
@@ -552,19 +590,34 @@ mod tests {
         let mut board = start_pos();
         assert_eq!(board.game_state.active_color, Side::White);
 
-        board.make(Move::new(Square::E2, Square::E4, MoveFlag::DoublePawnPush as u8));
+        board.make(Move::new(
+            Square::E2,
+            Square::E4,
+            MoveFlag::DoublePawnPush as u8,
+        ));
         assert_eq!(board.game_state.active_color, Side::Black);
 
-        board.make(Move::new(Square::E7, Square::E5, MoveFlag::DoublePawnPush as u8));
+        board.make(Move::new(
+            Square::E7,
+            Square::E5,
+            MoveFlag::DoublePawnPush as u8,
+        ));
         assert_eq!(board.game_state.active_color, Side::White);
     }
 
     #[test]
     fn quiet_move_leaves_no_captured_piece_in_history() {
         let mut board = start_pos();
-        board.make(Move::new(Square::E2, Square::E4, MoveFlag::DoublePawnPush as u8));
+        board.make(Move::new(
+            Square::E2,
+            Square::E4,
+            MoveFlag::DoublePawnPush as u8,
+        ));
 
-        let prev_state = board.history.get_last().expect("history should have an entry");
+        let prev_state = board
+            .history
+            .get_last()
+            .expect("history should have an entry");
         assert_eq!(prev_state.captured_piece, None);
     }
 
@@ -573,7 +626,11 @@ mod tests {
         let mut board = start_pos();
         assert_eq!(board.history.len(), 0);
 
-        board.make(Move::new(Square::E2, Square::E4, MoveFlag::DoublePawnPush as u8));
+        board.make(Move::new(
+            Square::E2,
+            Square::E4,
+            MoveFlag::DoublePawnPush as u8,
+        ));
         assert_eq!(board.history.len(), 1);
         // The very first history entry must reflect the state BEFORE the
         // first move: white to move, full castling rights, no en passant.
@@ -583,7 +640,11 @@ mod tests {
         assert_eq!(first_entry.enpassant, None);
         assert_eq!(first_entry.fullmove_counter, 1);
 
-        board.make(Move::new(Square::E7, Square::E5, MoveFlag::DoublePawnPush as u8));
+        board.make(Move::new(
+            Square::E7,
+            Square::E5,
+            MoveFlag::DoublePawnPush as u8,
+        ));
         assert_eq!(board.history.len(), 2);
         // Second history entry captures the state after white's move: black
         // to move, en passant on e3 still set (about to be cleared by this
@@ -599,7 +660,10 @@ mod tests {
         let mv = Move::new(Square::E2, Square::E4, MoveFlag::DoublePawnPush as u8);
         board.make(mv);
 
-        let prev_state = board.history.get_last().expect("history should have an entry");
+        let prev_state = board
+            .history
+            .get_last()
+            .expect("history should have an entry");
         assert_eq!(prev_state.next_move, mv);
     }
 
@@ -608,7 +672,11 @@ mod tests {
         let mut board = start_pos();
         let key_before = board.game_state.zobrist_key;
 
-        board.make(Move::new(Square::E2, Square::E4, MoveFlag::DoublePawnPush as u8));
+        board.make(Move::new(
+            Square::E2,
+            Square::E4,
+            MoveFlag::DoublePawnPush as u8,
+        ));
 
         assert_ne!(
             board.game_state.zobrist_key, key_before,
@@ -642,12 +710,19 @@ mod tests {
         let fen = "rnbqkbnr/pP2pppp/8/8/8/8/P1PPPPPP/RNBQKBNR w KQkq - 0 5";
         let mut board = board_from_fen(fen);
 
-        let mv = Move::new(Square::B7, Square::A8, MoveFlag::QueenCapturePromotion as u8);
+        let mv = Move::new(
+            Square::B7,
+            Square::A8,
+            MoveFlag::QueenCapturePromotion as u8,
+        );
         board.make(mv);
 
         assert_eq!(board.piece_list[Square::A8], Pieces::QUEEN);
         assert_eq!(board.piece_list[Square::B7], Pieces::NONE);
-        let prev_state = board.history.get_last().expect("history should have an entry");
+        let prev_state = board
+            .history
+            .get_last()
+            .expect("history should have an entry");
         assert_eq!(prev_state.captured_piece, Some(Pieces::ROOK));
     }
 
@@ -659,7 +734,11 @@ mod tests {
         let fen = "rnbqkbnr/pP2pppp/8/8/8/8/P1PPPPPP/RNBQKBNR w KQkq - 0 5";
         let mut board = board_from_fen(fen);
 
-        board.make(Move::new(Square::B7, Square::A8, MoveFlag::QueenCapturePromotion as u8));
+        board.make(Move::new(
+            Square::B7,
+            Square::A8,
+            MoveFlag::QueenCapturePromotion as u8,
+        ));
 
         let black_queen_side = CastlingRight::BlackQueenSide as u8;
         assert_eq!(board.game_state.castling & black_queen_side, 0);
@@ -675,7 +754,8 @@ mod tests {
         let mut board = board_from_fen(fen);
         let black_king_side = CastlingRight::BlackKingSide as u8;
         assert_eq!(
-            board.game_state.castling & black_king_side, black_king_side,
+            board.game_state.castling & black_king_side,
+            black_king_side,
             "sanity check: black should still have king-side rights before the capture"
         );
 

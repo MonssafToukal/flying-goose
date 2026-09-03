@@ -1,8 +1,8 @@
 use crate::board::Board;
 use crate::board::types::Piece;
+use crate::board::types::Pieces;
 use crate::board::types::{Side, Square};
 use crate::types::SQUARE_MASKS;
-use crate::board::types::Pieces;
 
 impl Board {
     pub fn put_piece(&mut self, piece: Piece, side: Side, square_idx: Square) {
@@ -42,7 +42,7 @@ impl Board {
                 let file = ep_square.file();
                 self.game_state.zobrist_key ^= self.zobrist_hashmap.enpassant(file);
                 self.game_state.clear_enpassant();
-            },
+            }
             None => (),
         }
     }

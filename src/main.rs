@@ -110,8 +110,15 @@ fn main() -> Result<(), MovementDataInitError> {
 
     // --- Example 2: double pawn push sets en passant -------------------
     let mut board = start_pos();
-    board.make(Move::new(Square::E2, Square::E4, MoveFlag::DoublePawnPush as u8));
-    print_board_state("After 1. e4 (double pawn push, en passant square set)", &board);
+    board.make(Move::new(
+        Square::E2,
+        Square::E4,
+        MoveFlag::DoublePawnPush as u8,
+    ));
+    print_board_state(
+        "After 1. e4 (double pawn push, en passant square set)",
+        &board,
+    );
 
     // --- Example 3: en passant capture ----------------------------------
     // Position after 1.e4 e6 2.e5 d5, set up directly via FEN (rather than
@@ -129,10 +136,16 @@ fn main() -> Result<(), MovementDataInitError> {
     // --- Example 4: white king-side castling ----------------------------
     let mut board = empty_board();
     board
-        .fen_setup(Some("rnbqkbnr/pppppppp/8/8/8/5NP1/PPPPPPBP/RNBQK2R w KQkq - 0 3"))
+        .fen_setup(Some(
+            "rnbqkbnr/pppppppp/8/8/8/5NP1/PPPPPPBP/RNBQK2R w KQkq - 0 3",
+        ))
         .unwrap();
     print_board_state("Before white king-side castle", &board);
-    board.make(Move::new(Square::E1, Square::G1, MoveFlag::KingSideCastle as u8));
+    board.make(Move::new(
+        Square::E1,
+        Square::G1,
+        MoveFlag::KingSideCastle as u8,
+    ));
     print_board_state("After O-O (king and rook both moved)", &board);
 
     // --- Example 5: capture -----------------------------------------
