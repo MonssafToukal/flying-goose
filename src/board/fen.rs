@@ -212,7 +212,7 @@ pub fn fen_parse_enpassant(board: &mut Board, part: &str) -> Result<(), FenError
             'h' => Files::H,
             _ => return Err(FenError::EnpassantPart),
         };
-        let rank: Ranks = match pchar.nth(1).unwrap() {
+        let rank: Ranks = match pchar.nth(0).unwrap() {
             '3' => Ranks::R3,
             '6' => Ranks::R6,
             _ => return Err(FenError::EnpassantPart),

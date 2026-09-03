@@ -15,14 +15,14 @@ const fn get_castling_permissions() -> BySquare<u8> {
     let default_castling_permissions = CastlingRight::ALL;
     let mut permissions = [default_castling_permissions; NumOf::SQUARES];
     // TODO!
-    permissions[Square::A1 as usize] = !(CastlingRight::WhiteQueenSide as u8);
-    permissions[Square::E1 as usize] =
+    permissions[Square::A1 as usize] &= !(CastlingRight::WhiteQueenSide as u8);
+    permissions[Square::E1 as usize] &=
         !(CastlingRight::WhiteQueenSide as u8 | CastlingRight::WhiteKingSide as u8);
-    permissions[Square::H1 as usize] = !(CastlingRight::WhiteKingSide as u8);
-    permissions[Square::A8 as usize] = !(CastlingRight::BlackQueenSide as u8);
-    permissions[Square::E8 as usize] =
+    permissions[Square::H1 as usize] &= !(CastlingRight::WhiteKingSide as u8);
+    permissions[Square::A8 as usize] &= !(CastlingRight::BlackQueenSide as u8);
+    permissions[Square::E8 as usize] &=
         !(CastlingRight::BlackQueenSide as u8 | CastlingRight::BlackKingSide as u8);
-    permissions[Square::H8 as usize] = !(CastlingRight::BlackKingSide as u8);
+    permissions[Square::H8 as usize] &= !(CastlingRight::BlackKingSide as u8);
 
     let permissions = BySquare::init(permissions);
 
@@ -104,6 +104,7 @@ impl Board {
                 let opponent_pawn_square = (to_square.usize() as i16) + opponent_pawn_direction as i16;
                 let opponent_pawn_square = Square::from(opponent_pawn_square as usize);
                 self.remove_piece(Pieces::PAWN, opponent, opponent_pawn_square);
+                self.set_enpassant(to_square);
             }
 
             if is_double_pawn_push {
@@ -374,6 +375,26 @@ mod tests {
         // The captured piece recorded for unmake/history should be a pawn,
         // not Pieces::NONE (there is nothing sitting on the destination
         // square d6 before an en-passant capture).
+        let prev_state = board.history.get_last().expect("history should have an entry");
+        assert_eq!(prev_state.captured_piece, Some(Pieces::PAWN));
+    }
+
+    #[test]
+    fn black_enpassant_capture_removes_captured_pawn_and_records_it() {
+        // Black pawn already on d4. White plays e2-e4 (double push, sets ep
+        // square e3), then Black replies d4xe3 e.p.
+        let fen = "rnbqkbnr/ppp1pppp/8/8/3p4/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        let mut board = board_from_fen(fen);
+
+        board.make(Move::new(Square::E2, Square::E4, MoveFlag::DoublePawnPush as u8));
+        assert_eq!(board.game_state.enpassant, Some(Square::E3));
+
+        board.make(Move::new(Square::D4, Square::E3, MoveFlag::EpCapture as u8));
+
+        // Capturing pawn now on e3, white pawn that was on e4 is gone.
+        assert_eq!(board.piece_list[Square::E3], Pieces::PAWN);
+        assert_eq!(board.piece_list[Square::D4], Pieces::NONE);
+        assert_eq!(board.piece_list[Square::E4], Pieces::NONE);
         let prev_state = board.history.get_last().expect("history should have an entry");
         assert_eq!(prev_state.captured_piece, Some(Pieces::PAWN));
     }
