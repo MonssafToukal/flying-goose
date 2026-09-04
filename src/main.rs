@@ -106,5 +106,8 @@ fn main() -> Result<(), MovementDataInitError> {
     board.init();
     print_board_state("starting position", &board);
 
+    board.make(Move::new(Square::E2, Square::E4, MoveFlag::DoublePawnPush as u8));
+    print_board_state("after double pawn push", &board);
+
     Ok(())
 }
